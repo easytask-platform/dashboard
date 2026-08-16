@@ -31,11 +31,16 @@ export function RegisterOrganizationPage() {
     formState: { isSubmitting, errors },
   } = useForm<RegisterForm>()
 
-  const onSubmit = handleSubmit(async ({ confirmPassword: _confirm, ...body }) => {
+  const onSubmit = handleSubmit(async ({ organizationName, adminFullName, email, password }) => {
     setApiMessage(null)
     setApiFields({})
     try {
-      const { data } = await api.post<LoginResponse>('/auth/register-organization', body)
+      const { data } = await api.post<LoginResponse>('/auth/register-organization', {
+        organizationName,
+        adminFullName,
+        email,
+        password,
+      })
       tokenStore.set(data.accessToken, data.refreshToken)
       await refreshUser()
       navigate('/', { replace: true })

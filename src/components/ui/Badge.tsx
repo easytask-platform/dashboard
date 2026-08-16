@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
