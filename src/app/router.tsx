@@ -1,9 +1,11 @@
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { AppShell } from './AppShell'
-import { RedirectIfAuthed, RequireAuth } from './guards'
+import { RedirectIfAuthed, RequireAuth, RequirePermission } from './guards'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RegisterOrganizationPage } from '@/features/auth/RegisterOrganizationPage'
 import { ProfilePage } from '@/features/auth/ProfilePage'
+import { UsersPage } from '@/features/users/UsersPage'
+import { RolesPage } from '@/features/roles/RolesPage'
 
 function Placeholder({ title }: { title: string }) {
   return <h1 className="text-xl font-semibold">{title}</h1>
@@ -24,8 +26,14 @@ const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { path: '/', element: <Placeholder title="Dashboard" /> },
-          { path: '/users', element: <Placeholder title="Users" /> },
-          { path: '/roles', element: <Placeholder title="Roles" /> },
+          {
+            element: <RequirePermission permission="user:read" />,
+            children: [{ path: '/users', element: <UsersPage /> }],
+          },
+          {
+            element: <RequirePermission permission="role:manage" />,
+            children: [{ path: '/roles', element: <RolesPage /> }],
+          },
           { path: '/teams', element: <Placeholder title="Teams" /> },
           { path: '/projects', element: <Placeholder title="Projects" /> },
           { path: '/tasks', element: <Placeholder title="Tasks" /> },
