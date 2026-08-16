@@ -76,6 +76,38 @@ export const ar: typeof en = {
       needPermission: 'اختر صلاحية واحدة على الأقل',
       system: 'دور نظامي',
     },
+    teams: {
+      create: 'إنشاء فريق',
+      edit: 'تعديل فريق',
+      members: 'الأعضاء',
+      membersOf: 'الأعضاء — {{name}}',
+    },
+    members: {
+      add: 'إضافة',
+      pickUser: 'اختر مستخدماً للإضافة',
+      remove: 'إزالة {{name}}',
+      empty: 'لا يوجد أعضاء بعد',
+    },
+    projects: {
+      create: 'إنشاء مشروع',
+      edit: 'تعديل مشروع',
+      status: 'الحالة',
+      statuses: {
+        PLANNED: 'مخطَّط',
+        ACTIVE: 'نشِط',
+        COMPLETED: 'مكتمل',
+        CANCELLED: 'ملغى',
+      },
+      progress: 'التقدم',
+      startDate: 'تاريخ البدء',
+      dueDate: 'تاريخ التسليم',
+      taskFlow: 'مسار المهام',
+      viewTasks: 'عرض مهام المشروع',
+      empty: 'لا توجد مشاريع مطابقة للفلاتر الحالية',
+    },
+    flow: {
+      label: 'توزيع حالات المهام',
+    },
     status: {
       TO_DO: 'قيد الانتظار',
       IN_PROGRESS: 'قيد التنفيذ',

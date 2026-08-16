@@ -74,6 +74,38 @@ export const en = {
       needPermission: 'Select at least one permission',
       system: 'System role',
     },
+    teams: {
+      create: 'Create team',
+      edit: 'Edit team',
+      members: 'Members',
+      membersOf: 'Members — {{name}}',
+    },
+    members: {
+      add: 'Add',
+      pickUser: 'Pick a user to add',
+      remove: 'Remove {{name}}',
+      empty: 'No members yet',
+    },
+    projects: {
+      create: 'Create project',
+      edit: 'Edit project',
+      status: 'Status',
+      statuses: {
+        PLANNED: 'Planned',
+        ACTIVE: 'Active',
+        COMPLETED: 'Completed',
+        CANCELLED: 'Cancelled',
+      },
+      progress: 'Progress',
+      startDate: 'Start date',
+      dueDate: 'Due date',
+      taskFlow: 'Task flow',
+      viewTasks: 'View project tasks',
+      empty: 'No projects match the current filters',
+    },
+    flow: {
+      label: 'Task status distribution',
+    },
     status: {
       TO_DO: 'To do',
       IN_PROGRESS: 'In progress',

@@ -19,10 +19,11 @@ import { cn } from '@/lib/utils'
 const NAV_ITEMS = [
   { to: '/', key: 'nav.dashboard', icon: LayoutDashboard, end: true },
   { to: '/users', key: 'nav.users', icon: UsersRound, permission: 'user:read' },
-  { to: '/roles', key: 'nav.roles', icon: ShieldCheck, permission: 'role:read' },
+  { to: '/roles', key: 'nav.roles', icon: ShieldCheck, permission: 'role:manage' },
   { to: '/teams', key: 'nav.teams', icon: Contact, permission: 'team:read' },
-  { to: '/projects', key: 'nav.projects', icon: FolderKanban, permission: 'project:read' },
-  { to: '/tasks', key: 'nav.tasks', icon: CalendarCheck2, permission: 'task:read' },
+  // Project/task read access is implicit (dataScope-filtered) — no gate.
+  { to: '/projects', key: 'nav.projects', icon: FolderKanban },
+  { to: '/tasks', key: 'nav.tasks', icon: CalendarCheck2 },
   { to: '/reports', key: 'nav.reports', icon: ChartNoAxesColumn, permission: 'dashboard:manager' },
   { to: '/notifications', key: 'nav.notifications', icon: Bell },
 ] as const

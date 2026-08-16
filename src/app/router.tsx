@@ -6,6 +6,9 @@ import { RegisterOrganizationPage } from '@/features/auth/RegisterOrganizationPa
 import { ProfilePage } from '@/features/auth/ProfilePage'
 import { UsersPage } from '@/features/users/UsersPage'
 import { RolesPage } from '@/features/roles/RolesPage'
+import { TeamsPage } from '@/features/teams/TeamsPage'
+import { ProjectsPage } from '@/features/projects/ProjectsPage'
+import { ProjectDetailsPage } from '@/features/projects/ProjectDetailsPage'
 
 function Placeholder({ title }: { title: string }) {
   return <h1 className="text-xl font-semibold">{title}</h1>
@@ -34,8 +37,12 @@ const router = createBrowserRouter([
             element: <RequirePermission permission="role:manage" />,
             children: [{ path: '/roles', element: <RolesPage /> }],
           },
-          { path: '/teams', element: <Placeholder title="Teams" /> },
-          { path: '/projects', element: <Placeholder title="Projects" /> },
+          {
+            element: <RequirePermission permission="team:read" />,
+            children: [{ path: '/teams', element: <TeamsPage /> }],
+          },
+          { path: '/projects', element: <ProjectsPage /> },
+          { path: '/projects/:projectId', element: <ProjectDetailsPage /> },
           { path: '/tasks', element: <Placeholder title="Tasks" /> },
           { path: '/reports', element: <Placeholder title="Reports" /> },
           { path: '/notifications', element: <Placeholder title="Notifications" /> },
