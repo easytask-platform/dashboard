@@ -126,6 +126,11 @@ export const ar: typeof en = {
       notOverdue: 'غير المتأخرة',
       empty: 'لا توجد مهام مطابقة للفلاتر الحالية',
       note: 'ملاحظة (اختيارية)',
+      views: {
+        table: 'جدول',
+        kanban: 'لوحة',
+        calendar: 'تقويم',
+      },
       actions: {
         IN_PROGRESS: 'بدء',
         IN_REVIEW: 'إرسال للمراجعة',
@@ -140,6 +145,12 @@ export const ar: typeof en = {
         REOPENED: 'أُعيد فتح المهمة',
         CANCELLED: 'أُلغيت المهمة',
       },
+    },
+    notifications: {
+      markAllRead: 'تعليم الكل كمقروء',
+      unread: 'غير المقروءة',
+      read: 'المقروءة',
+      empty: 'لا توجد إشعارات',
     },
     home: {
       welcome: 'أهلاً بعودتك، {{name}}',

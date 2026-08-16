@@ -124,6 +124,11 @@ export const en = {
       notOverdue: 'Not overdue',
       empty: 'No tasks match the current filters',
       note: 'Note (optional)',
+      views: {
+        table: 'Table',
+        kanban: 'Board',
+        calendar: 'Calendar',
+      },
       actions: {
         IN_PROGRESS: 'Start',
         IN_REVIEW: 'Submit for review',
@@ -138,6 +143,12 @@ export const en = {
         REOPENED: 'Task reopened',
         CANCELLED: 'Task cancelled',
       },
+    },
+    notifications: {
+      markAllRead: 'Mark all read',
+      unread: 'Unread',
+      read: 'Read',
+      empty: 'No notifications',
     },
     home: {
       welcome: 'Welcome back, {{name}}',

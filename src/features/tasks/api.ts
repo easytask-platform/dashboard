@@ -38,13 +38,15 @@ export interface TaskFilters {
   assigneeId: string
   overdue: string
   page: number
+  /** Board/calendar views load a larger window than the table. */
+  size?: number
 }
 
 export function useTasksQuery(filters: TaskFilters) {
   return useQuery({
     queryKey: ['tasks', filters],
     queryFn: async () => {
-      const params: Record<string, string | number> = { page: filters.page, size: 20 }
+      const params: Record<string, string | number> = { page: filters.page, size: filters.size ?? 20 }
       for (const key of ['search', 'status', 'priority', 'projectId', 'assigneeId', 'overdue'] as const) {
         if (filters[key]) params[key] = filters[key]
       }

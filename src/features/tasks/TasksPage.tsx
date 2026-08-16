@@ -6,10 +6,15 @@ import { Can, useAuth } from '@/features/auth/auth-context'
 import { useProjectsQuery } from '@/features/projects/api'
 import { useTasksQuery, TASK_STATUSES, TASK_PRIORITIES, type TaskFilters, type TaskListItem } from './api'
 import { TaskFormDialog } from './TaskFormDialog'
+import { KanbanView } from './KanbanView'
+import { CalendarView } from './CalendarView'
 import { PageHeader, SearchInput } from '@/components/ui/PageHeader'
 import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { cn } from '@/lib/utils'
+
+type View = 'table' | 'kanban' | 'calendar'
 
 const selectClass =
   'h-9 rounded-lg border border-line bg-surface px-3 text-sm outline-none focus:border-primary'
@@ -30,7 +35,9 @@ export function TasksPage() {
     overdue: searchParams.get('overdue') ?? '',
     page: 0,
   })
-  const tasksQuery = useTasksQuery(filters)
+  const [view, setView] = useState<View>('table')
+  // Board and calendar need the whole filtered window, not one table page.
+  const tasksQuery = useTasksQuery(view === 'table' ? filters : { ...filters, page: 0, size: 200 })
   const projectsQuery = useProjectsQuery({ search: '', status: '', page: 0 })
   const [creating, setCreating] = useState(false)
 
@@ -154,15 +161,38 @@ export function TasksPage() {
         </select>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={tasksQuery.data?.items ?? []}
-        rowKey={(task) => task.id}
-        onRowClick={(task) => navigate(`/tasks/${task.id}`)}
-        loading={tasksQuery.isLoading}
-        emptyMessage={t('tasks.empty')}
-      />
-      <Pagination page={tasksQuery.data} onPageChange={(page) => setFilters((f) => ({ ...f, page }))} />
+      <div role="tablist" className="mb-4 flex w-fit gap-1 rounded-lg bg-paper p-1">
+        {(['table', 'kanban', 'calendar'] as View[]).map((key) => (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={view === key}
+            onClick={() => setView(key)}
+            className={cn(
+              'rounded-md px-4 py-1.5 text-sm font-medium transition-colors',
+              view === key ? 'bg-surface text-ink shadow-card' : 'text-ink-soft hover:text-ink',
+            )}
+          >
+            {t(`tasks.views.${key}`)}
+          </button>
+        ))}
+      </div>
+
+      {view === 'table' && (
+        <>
+          <DataTable
+            columns={columns}
+            rows={tasksQuery.data?.items ?? []}
+            rowKey={(task) => task.id}
+            onRowClick={(task) => navigate(`/tasks/${task.id}`)}
+            loading={tasksQuery.isLoading}
+            emptyMessage={t('tasks.empty')}
+          />
+          <Pagination page={tasksQuery.data} onPageChange={(page) => setFilters((f) => ({ ...f, page }))} />
+        </>
+      )}
+      {view === 'kanban' && <KanbanView tasks={tasksQuery.data?.items ?? []} />}
+      {view === 'calendar' && <CalendarView tasks={tasksQuery.data?.items ?? []} />}
 
       <TaskFormDialog
         open={creating}

@@ -13,8 +13,19 @@ import {
   Contact,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-context'
+import { useUnreadCountQuery } from '@/features/notifications/api'
 import { applyLanguage, storedLanguage } from '@/i18n'
 import { cn } from '@/lib/utils'
+
+function UnreadBadge() {
+  const unreadQuery = useUnreadCountQuery()
+  if (!unreadQuery.data) return null
+  return (
+    <span className="ms-auto rounded-full bg-danger px-2 py-0.5 text-xs font-semibold text-white">
+      {unreadQuery.data > 99 ? '99+' : unreadQuery.data}
+    </span>
+  )
+}
 
 const NAV_ITEMS = [
   { to: '/', key: 'nav.dashboard', icon: LayoutDashboard, end: true },
@@ -56,6 +67,7 @@ export function AppShell() {
               >
                 <Icon className="size-4.5" aria-hidden />
                 {t(key)}
+                {to === '/notifications' && <UnreadBadge />}
               </NavLink>
             ),
           )}

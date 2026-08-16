@@ -14,10 +14,7 @@ import { TaskDetailsPage } from '@/features/tasks/TaskDetailsPage'
 import { RecurringPage } from '@/features/recurring/RecurringPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
-
-function Placeholder({ title }: { title: string }) {
-  return <h1 className="text-xl font-semibold">{title}</h1>
-}
+import { NotificationsPage } from '@/features/notifications/NotificationsPage'
 
 const router = createBrowserRouter([
   {
@@ -58,7 +55,7 @@ const router = createBrowserRouter([
             element: <RequirePermission permission="dashboard:manager" />,
             children: [{ path: '/reports', element: <ReportsPage /> }],
           },
-          { path: '/notifications', element: <Placeholder title="Notifications" /> },
+          { path: '/notifications', element: <NotificationsPage /> },
           { path: '/profile', element: <ProfilePage /> },
         ],
       },
