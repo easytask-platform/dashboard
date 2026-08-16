@@ -12,6 +12,8 @@ import { ProjectDetailsPage } from '@/features/projects/ProjectDetailsPage'
 import { TasksPage } from '@/features/tasks/TasksPage'
 import { TaskDetailsPage } from '@/features/tasks/TaskDetailsPage'
 import { RecurringPage } from '@/features/recurring/RecurringPage'
+import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { ReportsPage } from '@/features/reports/ReportsPage'
 
 function Placeholder({ title }: { title: string }) {
   return <h1 className="text-xl font-semibold">{title}</h1>
@@ -31,7 +33,7 @@ const router = createBrowserRouter([
       {
         element: <AppShell />,
         children: [
-          { path: '/', element: <Placeholder title="Dashboard" /> },
+          { path: '/', element: <DashboardPage /> },
           {
             element: <RequirePermission permission="user:read" />,
             children: [{ path: '/users', element: <UsersPage /> }],
@@ -52,7 +54,10 @@ const router = createBrowserRouter([
             children: [{ path: '/tasks/recurring', element: <RecurringPage /> }],
           },
           { path: '/tasks/:taskId', element: <TaskDetailsPage /> },
-          { path: '/reports', element: <Placeholder title="Reports" /> },
+          {
+            element: <RequirePermission permission="dashboard:manager" />,
+            children: [{ path: '/reports', element: <ReportsPage /> }],
+          },
           { path: '/notifications', element: <Placeholder title="Notifications" /> },
           { path: '/profile', element: <ProfilePage /> },
         ],

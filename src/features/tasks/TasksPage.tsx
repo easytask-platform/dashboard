@@ -23,11 +23,11 @@ export function TasksPage() {
 
   const [filters, setFilters] = useState<TaskFilters>({
     search: '',
-    status: '',
+    status: searchParams.get('status') ?? '',
     priority: '',
     projectId: searchParams.get('projectId') ?? '',
     assigneeId: '',
-    overdue: '',
+    overdue: searchParams.get('overdue') ?? '',
     page: 0,
   })
   const tasksQuery = useTasksQuery(filters)
