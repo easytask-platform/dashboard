@@ -139,6 +139,23 @@ export const en = {
         CANCELLED: 'Task cancelled',
       },
     },
+    recurring: {
+      title: 'Recurring tasks',
+      create: 'Create recurring task',
+      frequency: 'Frequency',
+      frequencies: {
+        DAILY: 'Daily',
+        WEEKLY: 'Weekly',
+        MONTHLY: 'Monthly',
+      },
+      interval: 'Every N periods',
+      startsOn: 'Recurrence start',
+      endsOn: 'Recurrence end',
+      viewGenerated: 'View generated tasks',
+      generatedFor: 'Generated tasks — {{title}}',
+      noGenerated: 'No tasks generated yet',
+      empty: 'No recurring rules yet',
+    },
     collab: {
       tabs: {
         comments: 'Comments',

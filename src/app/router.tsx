@@ -11,6 +11,7 @@ import { ProjectsPage } from '@/features/projects/ProjectsPage'
 import { ProjectDetailsPage } from '@/features/projects/ProjectDetailsPage'
 import { TasksPage } from '@/features/tasks/TasksPage'
 import { TaskDetailsPage } from '@/features/tasks/TaskDetailsPage'
+import { RecurringPage } from '@/features/recurring/RecurringPage'
 
 function Placeholder({ title }: { title: string }) {
   return <h1 className="text-xl font-semibold">{title}</h1>
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
           { path: '/projects', element: <ProjectsPage /> },
           { path: '/projects/:projectId', element: <ProjectDetailsPage /> },
           { path: '/tasks', element: <TasksPage /> },
+          {
+            element: <RequirePermission permission="recurring:manage" />,
+            children: [{ path: '/tasks/recurring', element: <RecurringPage /> }],
+          },
           { path: '/tasks/:taskId', element: <TaskDetailsPage /> },
           { path: '/reports', element: <Placeholder title="Reports" /> },
           { path: '/notifications', element: <Placeholder title="Notifications" /> },

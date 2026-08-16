@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { Plus, TriangleAlert } from 'lucide-react'
-import { useAuth } from '@/features/auth/auth-context'
+import { Plus, Repeat2, TriangleAlert } from 'lucide-react'
+import { Can, useAuth } from '@/features/auth/auth-context'
 import { useProjectsQuery } from '@/features/projects/api'
 import { useTasksQuery, TASK_STATUSES, TASK_PRIORITIES, type TaskFilters, type TaskListItem } from './api'
 import { TaskFormDialog } from './TaskFormDialog'
@@ -83,11 +83,21 @@ export function TasksPage() {
       <PageHeader
         title={t('nav.tasks')}
         actions={
-          canManage && (
-            <Button onClick={() => setCreating(true)}>
-              <Plus className="size-4" /> {t('tasks.create')}
-            </Button>
-          )
+          <>
+            <Can permission="recurring:manage">
+              <Link
+                to="/tasks/recurring"
+                className="flex h-9 items-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-ink hover:bg-paper"
+              >
+                <Repeat2 className="size-4" /> {t('recurring.title')}
+              </Link>
+            </Can>
+            {canManage && (
+              <Button onClick={() => setCreating(true)}>
+                <Plus className="size-4" /> {t('tasks.create')}
+              </Button>
+            )}
+          </>
         }
       />
 

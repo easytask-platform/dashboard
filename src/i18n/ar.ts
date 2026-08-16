@@ -141,6 +141,23 @@ export const ar: typeof en = {
         CANCELLED: 'أُلغيت المهمة',
       },
     },
+    recurring: {
+      title: 'المهام المتكررة',
+      create: 'إنشاء مهمة متكررة',
+      frequency: 'التكرار',
+      frequencies: {
+        DAILY: 'يومي',
+        WEEKLY: 'أسبوعي',
+        MONTHLY: 'شهري',
+      },
+      interval: 'كل N فترة',
+      startsOn: 'بداية التكرار',
+      endsOn: 'نهاية التكرار',
+      viewGenerated: 'عرض المهام المولَّدة',
+      generatedFor: 'المهام المولَّدة — {{title}}',
+      noGenerated: 'لم تُولَّد مهام بعد',
+      empty: 'لا توجد قواعد تكرار بعد',
+    },
     collab: {
       tabs: {
         comments: 'التعليقات',
