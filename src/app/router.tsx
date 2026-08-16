@@ -9,6 +9,8 @@ import { RolesPage } from '@/features/roles/RolesPage'
 import { TeamsPage } from '@/features/teams/TeamsPage'
 import { ProjectsPage } from '@/features/projects/ProjectsPage'
 import { ProjectDetailsPage } from '@/features/projects/ProjectDetailsPage'
+import { TasksPage } from '@/features/tasks/TasksPage'
+import { TaskDetailsPage } from '@/features/tasks/TaskDetailsPage'
 
 function Placeholder({ title }: { title: string }) {
   return <h1 className="text-xl font-semibold">{title}</h1>
@@ -43,7 +45,8 @@ const router = createBrowserRouter([
           },
           { path: '/projects', element: <ProjectsPage /> },
           { path: '/projects/:projectId', element: <ProjectDetailsPage /> },
-          { path: '/tasks', element: <Placeholder title="Tasks" /> },
+          { path: '/tasks', element: <TasksPage /> },
+          { path: '/tasks/:taskId', element: <TaskDetailsPage /> },
           { path: '/reports', element: <Placeholder title="Reports" /> },
           { path: '/notifications', element: <Placeholder title="Notifications" /> },
           { path: '/profile', element: <ProfilePage /> },
