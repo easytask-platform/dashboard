@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router'
+import { Link, useNavigate, useLocation } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from './auth-context'
@@ -82,6 +82,13 @@ export function LoginPage() {
           >
             {isSubmitting ? t('common.loading') : t('auth.login')}
           </button>
+
+          <p className="mt-4 text-center text-sm text-ink-soft">
+            {t('auth.noAccount')}{' '}
+            <Link to="/register" className="font-medium text-primary hover:underline">
+              {t('auth.register')}
+            </Link>
+          </p>
         </form>
       </div>
     </div>
