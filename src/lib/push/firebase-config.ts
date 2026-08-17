@@ -9,13 +9,15 @@
  * keeps working) — same fallback philosophy as the mail setup.
  */
 export const FIREBASE_CONFIG = {
-  apiKey: '',
+  apiKey: 'AIzaSyCcLV9THwtXIoTJtsahPrJENZIeNVdh_mw',
   authDomain: 'easytask-9f54c.firebaseapp.com',
   projectId: 'easytask-9f54c',
-  messagingSenderId: '',
-  appId: '',
+  storageBucket: 'easytask-9f54c.firebasestorage.app',
+  messagingSenderId: '1091374993437',
+  appId: '1:1091374993437:web:755408294be1d3395436f4',
 }
 
-export const VAPID_KEY = ''
+export const VAPID_KEY: string =
+  'BJJhiZ-ehIaxs4lNvWsNA3J_mZAR0lm1E34Gbz2zA0VI2_4iJRb2_OoKM5-7lUOCLDNIHBZ8LnU7IjxOqr8ZB88'
 
 export const pushConfigured = FIREBASE_CONFIG.apiKey !== '' && VAPID_KEY !== ''

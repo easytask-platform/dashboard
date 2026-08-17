@@ -9,11 +9,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 const FIREBASE_CONFIG = {
-  apiKey: '',
+  apiKey: 'AIzaSyCcLV9THwtXIoTJtsahPrJENZIeNVdh_mw',
   authDomain: 'easytask-9f54c.firebaseapp.com',
   projectId: 'easytask-9f54c',
-  messagingSenderId: '',
-  appId: '',
+  storageBucket: 'easytask-9f54c.firebasestorage.app',
+  messagingSenderId: '1091374993437',
+  appId: '1:1091374993437:web:755408294be1d3395436f4',
 };
 
 if (FIREBASE_CONFIG.apiKey) {
