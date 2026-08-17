@@ -42,6 +42,7 @@ export function UsersPage() {
 
   const [editing, setEditing] = useState<User | null>(null)
   const [creating, setCreating] = useState(false)
+  const [inviteMode, setInviteMode] = useState(true)
   const [deactivating, setDeactivating] = useState<User | null>(null)
   const [resetting, setResetting] = useState<User | null>(null)
 
@@ -56,6 +57,7 @@ export function UsersPage() {
 
   const openCreate = () => {
     form.reset({ fullName: '', email: '', initialPassword: '', roleId: '' })
+    setInviteMode(true)
     setApiMessage(null)
     setApiFields({})
     setCreating(true)
@@ -80,10 +82,16 @@ export function UsersPage() {
       if (editing) {
         await updateUser.mutateAsync({ userId: editing.id, fullName: values.fullName, roleId: values.roleId })
       } else {
-        await createUser.mutateAsync(values)
+        // Invite mode (P3-2): omit the password — the backend emails a code.
+        await createUser.mutateAsync({
+          fullName: values.fullName,
+          email: values.email,
+          roleId: values.roleId,
+          ...(inviteMode ? {} : { initialPassword: values.initialPassword }),
+        })
       }
       closeForm()
-      toast.success(t('common.save'))
+      toast.success(editing ? t('common.save') : inviteMode ? t('users.invited') : t('common.save'))
     } catch (error) {
       const split = splitApiError(error)
       setApiMessage(split.message)
@@ -239,14 +247,49 @@ export function UsersPage() {
             {...form.register('email')}
           />
           {!editing && (
-            <TextField
-              label={t('users.initialPassword')}
-              type="password"
-              required
-              minLength={8}
-              error={apiFields.initialPassword}
-              {...form.register('initialPassword')}
-            />
+            <>
+              <fieldset>
+                <legend className="mb-1.5 block text-sm font-medium">{t('users.credentialMode')}</legend>
+                <div className="space-y-1.5 rounded-lg border border-line bg-paper p-3 text-sm">
+                  <label className="flex items-start gap-2">
+                    <input
+                      type="radio"
+                      name="credentialMode"
+                      checked={inviteMode}
+                      onChange={() => setInviteMode(true)}
+                      className="mt-0.5 accent-(--color-primary)"
+                    />
+                    <span>
+                      {t('users.inviteByEmail')}
+                      <span className="block text-xs text-ink-soft">{t('users.inviteByEmailHint')}</span>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2">
+                    <input
+                      type="radio"
+                      name="credentialMode"
+                      checked={!inviteMode}
+                      onChange={() => setInviteMode(false)}
+                      className="mt-0.5 accent-(--color-primary)"
+                    />
+                    <span>
+                      {t('users.setInitialPassword')}
+                      <span className="block text-xs text-ink-soft">{t('users.setInitialPasswordHint')}</span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+              {!inviteMode && (
+                <TextField
+                  label={t('users.initialPassword')}
+                  type="password"
+                  required
+                  minLength={8}
+                  error={apiFields.initialPassword}
+                  {...form.register('initialPassword')}
+                />
+              )}
+            </>
           )}
           <SelectField label={t('profile.role')} required error={apiFields.roleId} {...form.register('roleId')}>
             <option value="" disabled>

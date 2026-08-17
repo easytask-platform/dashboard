@@ -36,7 +36,8 @@ export function useUsersQuery(filters: UserFilters) {
 interface CreateUserBody {
   fullName: string
   email: string
-  initialPassword: string
+  /** Omitted = invitation mode: the user gets an email and sets their own (P3-2). */
+  initialPassword?: string
   roleId: string
 }
 

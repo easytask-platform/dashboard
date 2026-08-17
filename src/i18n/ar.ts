@@ -38,6 +38,9 @@ export const ar: typeof en = {
       currentPassword: 'كلمة المرور الحالية',
       newPassword: 'كلمة المرور الجديدة',
       passwordChanged: 'تم تغيير كلمة المرور',
+      forcedChangeTitle: 'اختر كلمة مرور خاصة بك',
+      forcedChangeSubtitle: 'كلمة مرور {{email}} وضعها المسؤول — استبدلها للمتابعة.',
+      forcedChangeAction: 'تعيين كلمة المرور والمتابعة',
     },
     profile: {
       role: 'الدور',
@@ -50,6 +53,12 @@ export const ar: typeof en = {
       allRoles: 'كل الأدوار',
       selectRole: 'اختر دوراً',
       initialPassword: 'كلمة المرور الأولية',
+      credentialMode: 'بيانات دخول الحساب',
+      inviteByEmail: 'إرسال دعوة بالبريد الإلكتروني',
+      inviteByEmailHint: 'يستلم رمزاً ويختار كلمة مروره بنفسه. الخيار الموصى به.',
+      setInitialPassword: 'تعيين كلمة مرور مؤقتة',
+      setInitialPasswordHint: 'يجب استبدالها عند أول تسجيل دخول.',
+      invited: 'تم إرسال الدعوة',
       deactivate: 'تعطيل',
       deactivated: 'تم تعطيل المستخدم',
       deactivateConfirm:

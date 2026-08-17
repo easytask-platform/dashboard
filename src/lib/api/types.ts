@@ -39,6 +39,8 @@ export interface AuthUser {
   scope: string
   permissions: string[]
   organizationName: string
+  /** True when an admin chose the current password — force a change before anything else. */
+  mustChangePassword: boolean
 }
 
 export interface LoginResponse {

@@ -75,7 +75,7 @@ describe('users page', () => {
     expect(within(table).getByText('Active')).toBeInTheDocument()
   })
 
-  it('creates a user with a picked role', async () => {
+  it('invites a user by email (default mode, no password sent)', async () => {
     signIn()
     const user = userEvent.setup()
     renderRoutes([{ path: '/users', element: <UsersPage /> }], '/users')
@@ -84,12 +84,35 @@ describe('users page', () => {
     await user.click(screen.getByRole('button', { name: /create user/i }))
     const dialog = screen.getByRole('dialog')
     await user.type(within(dialog).getByLabelText(/full name/i), 'New Person')
-    await user.type(within(dialog).getByLabelText(/email/i), 'new@acme.test')
+    await user.type(within(dialog).getByLabelText(/^email$/i), 'new@acme.test')
+    expect(within(dialog).queryByLabelText(/initial password/i)).not.toBeInTheDocument()
+    await user.selectOptions(within(dialog).getByLabelText(/role/i), 'r-emp')
+    await user.click(within(dialog).getByRole('button', { name: /create/i }))
+
+    expect(await screen.findByText(/invitation sent/i)).toBeInTheDocument()
+    expect(createdUserBody).toEqual({
+      fullName: 'New Person',
+      email: 'new@acme.test',
+      roleId: 'r-emp',
+    })
+  })
+
+  it('creates a user with a temporary password when that mode is picked', async () => {
+    signIn()
+    const user = userEvent.setup()
+    renderRoutes([{ path: '/users', element: <UsersPage /> }], '/users')
+    await screen.findByText('Sam Employee')
+
+    await user.click(screen.getByRole('button', { name: /create user/i }))
+    const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByLabelText(/full name/i), 'New Person')
+    await user.type(within(dialog).getByLabelText(/^email$/i), 'new@acme.test')
+    await user.click(within(dialog).getByRole('radio', { name: /temporary password/i }))
     await user.type(within(dialog).getByLabelText(/initial password/i), 'password123')
     await user.selectOptions(within(dialog).getByLabelText(/role/i), 'r-emp')
     await user.click(within(dialog).getByRole('button', { name: /create/i }))
 
-    expect(await screen.findByText(/save changes/i)).toBeInTheDocument() // toast
+    expect(await screen.findByText(/save changes/i)).toBeInTheDocument()
     expect(createdUserBody).toEqual({
       fullName: 'New Person',
       email: 'new@acme.test',

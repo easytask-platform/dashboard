@@ -36,6 +36,9 @@ export const en = {
       currentPassword: 'Current password',
       newPassword: 'New password',
       passwordChanged: 'Password changed',
+      forcedChangeTitle: 'Choose your own password',
+      forcedChangeSubtitle: 'The password for {{email}} was set by an administrator — replace it to continue.',
+      forcedChangeAction: 'Set password and continue',
     },
     profile: {
       role: 'Role',
@@ -48,6 +51,12 @@ export const en = {
       allRoles: 'All roles',
       selectRole: 'Select a role',
       initialPassword: 'Initial password',
+      credentialMode: 'Account credentials',
+      inviteByEmail: 'Send an email invitation',
+      inviteByEmailHint: 'They receive a code and choose their own password. Recommended.',
+      setInitialPassword: 'Set a temporary password',
+      setInitialPasswordHint: 'They must replace it at first login.',
+      invited: 'Invitation sent',
       deactivate: 'Deactivate',
       deactivated: 'User deactivated',
       deactivateConfirm:

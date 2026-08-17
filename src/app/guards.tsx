@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/auth-context'
+import { ForcedPasswordChangePage } from '@/features/auth/ForcedPasswordChangePage'
 
 /** Blocks unauthenticated access; remembers where the user was heading. */
 export function RequireAuth() {
@@ -14,6 +15,8 @@ export function RequireAuth() {
     )
   }
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  // Admin-chosen password (P3-2): the whole app stays blocked until replaced.
+  if (user.mustChangePassword) return <ForcedPasswordChangePage />
   return <Outlet />
 }
 

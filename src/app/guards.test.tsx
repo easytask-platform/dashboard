@@ -19,6 +19,7 @@ const me: AuthUser = {
   scope: 'ORGANIZATION',
   permissions: ['task:read'],
   organizationName: 'Acme',
+  mustChangePassword: false,
 }
 
 const server = setupServer(http.get(`${API_BASE_URL}/me`, () => HttpResponse.json(me)))

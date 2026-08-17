@@ -37,6 +37,7 @@ export const testUser: AuthUser = {
     'user:read',
   ],
   organizationName: 'Acme',
+  mustChangePassword: false,
 }
 
 /** MSW handler for GET /me — pair with signIn() for authenticated renders. */
