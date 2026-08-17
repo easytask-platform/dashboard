@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
   Bell,
@@ -14,6 +16,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-context'
 import { useUnreadCountQuery } from '@/features/notifications/api'
+import { enableWebPush } from '@/lib/push/push'
+import { useToast } from '@/components/ui/Toast'
 import { applyLanguage, storedLanguage } from '@/i18n'
 import { cn } from '@/lib/utils'
 
@@ -42,6 +46,19 @@ const NAV_ITEMS = [
 export function AppShell() {
   const { t } = useTranslation()
   const { user, hasPermission } = useAuth()
+  const toast = useToast()
+  const queryClient = useQueryClient()
+
+  // Web push (P3-6): register this browser once per session; foreground
+  // messages become a toast + a badge refresh (background = service worker).
+  useEffect(() => {
+    void enableWebPush((push) => {
+      toast.success(push.body ? `${push.title} — ${push.body}` : push.title)
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      void queryClient.invalidateQueries({ queryKey: ['notifications-unread'] })
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="flex min-h-screen">

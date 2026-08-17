@@ -44,6 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
+    // Push unregistration needs the still-valid session, so it runs first.
+    const { disableWebPush } = await import('@/lib/push/push')
+    await disableWebPush()
     const refreshToken = tokenStore.refreshToken
     try {
       if (refreshToken) await api.post('/auth/logout', { refreshToken })
