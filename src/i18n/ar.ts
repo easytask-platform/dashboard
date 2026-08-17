@@ -16,6 +16,7 @@ export const ar: typeof en = {
       reports: 'التقارير',
       notifications: 'الإشعارات',
       profile: 'الملف الشخصي',
+      review: 'المراجعة',
     },
     auth: {
       login: 'تسجيل الدخول',
@@ -151,6 +152,8 @@ export const ar: typeof en = {
       allStatuses: 'كل الحالات',
       allPriorities: 'كل الأولويات',
       allProjects: 'كل المشاريع',
+      assignee: 'المكلَّف',
+      allAssignees: 'كل المكلَّفين',
       overdue: 'متأخرة',
       overdueOnly: 'المتأخرة فقط',
       notOverdue: 'غير المتأخرة',
@@ -175,6 +178,17 @@ export const ar: typeof en = {
         REOPENED: 'أُعيد فتح المهمة',
         CANCELLED: 'أُلغيت المهمة',
       },
+    },
+    calendar: {
+      today: 'اليوم',
+      month: 'شهر',
+      week: 'أسبوع',
+      dueOn: 'مستحق في {{date}}',
+      nothingDue: 'لا شيء مستحق في هذا اليوم',
+    },
+    review: {
+      title: 'قائمة المراجعة',
+      empty: 'لا يوجد شيء بانتظار المراجعة 🎉',
     },
     notifications: {
       markAllRead: 'تعليم الكل كمقروء',
@@ -241,6 +255,7 @@ export const ar: typeof en = {
       uploaded: 'تم رفع الملف',
       download: 'تنزيل {{name}}',
       noAttachments: 'لا توجد مرفقات بعد',
+      editComment: 'تعديل التعليق',
       workDate: 'تاريخ العمل',
       hoursSpent: 'الساعات',
       note: 'ملاحظة',

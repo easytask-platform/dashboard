@@ -205,7 +205,7 @@ function ManagerView() {
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         <StatCard label={t('home.managedTasks')} value={data.managedTaskCount} to="/tasks" />
-        <StatCard label={t('home.awaitingReview')} value={data.tasksAwaitingReview} to="/tasks?status=IN_REVIEW" accent />
+        <StatCard label={t('home.awaitingReview')} value={data.tasksAwaitingReview} to="/review" accent />
         <StatCard label={t('home.overdueCount')} value={data.overdueTaskCount} to="/tasks?overdue=true" />
       </div>
 

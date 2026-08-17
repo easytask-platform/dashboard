@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
-import { Download, Paperclip, Send, Trash2 } from 'lucide-react'
+import { Check, Download, Paperclip, Pencil, Send, Trash2, X } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-context'
 import {
   useCommentsQuery,
   useAddComment,
+  useUpdateComment,
   useDeleteComment,
   useAttachmentsQuery,
   useUploadAttachment,
@@ -65,8 +66,21 @@ function CommentsTab({ taskId }: { taskId: string }) {
   const toast = useToast()
   const commentsQuery = useCommentsQuery(taskId)
   const addComment = useAddComment(taskId)
+  const updateComment = useUpdateComment(taskId)
   const deleteComment = useDeleteComment(taskId)
   const [text, setText] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+
+  const saveEdit = async () => {
+    if (!editingId || !editText.trim()) return
+    try {
+      await updateComment.mutateAsync({ commentId: editingId, text: editText.trim() })
+      setEditingId(null)
+    } catch (error) {
+      toast.error(splitApiError(error).message ?? t('common.error'))
+    }
+  }
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -106,20 +120,64 @@ function CommentsTab({ taskId }: { taskId: string }) {
                 <span className="text-sm font-medium">{comment.author.fullName}</span>
                 <span className="flex items-center gap-2 text-xs text-ink-soft">
                   {format(new Date(comment.createdAt), 'yyyy-MM-dd HH:mm')}
-                  {comment.author.id === user?.id && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-6"
-                      aria-label={t('common.delete')}
-                      onClick={() => deleteComment.mutate(comment.id)}
-                    >
-                      <Trash2 className="size-3.5 text-danger" />
-                    </Button>
+                  {comment.author.id === user?.id && editingId !== comment.id && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-6"
+                        aria-label={t('common.edit')}
+                        onClick={() => {
+                          setEditingId(comment.id)
+                          setEditText(comment.text)
+                        }}
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-6"
+                        aria-label={t('common.delete')}
+                        onClick={() => deleteComment.mutate(comment.id)}
+                      >
+                        <Trash2 className="size-3.5 text-danger" />
+                      </Button>
+                    </>
                   )}
                 </span>
               </div>
-              <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
+              {editingId === comment.id ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    value={editText}
+                    onChange={(event) => setEditText(event.target.value)}
+                    aria-label={t('collab.editComment')}
+                    className="h-8 flex-1 rounded-lg border border-line bg-surface px-2 text-sm outline-none focus:border-primary"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    aria-label={t('common.save')}
+                    disabled={updateComment.isPending}
+                    onClick={() => void saveEdit()}
+                  >
+                    <Check className="size-4 text-success" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    aria-label={t('common.cancel')}
+                    onClick={() => setEditingId(null)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
+              )}
             </li>
           ))}
         </ul>

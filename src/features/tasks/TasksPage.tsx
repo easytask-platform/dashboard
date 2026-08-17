@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Repeat2, TriangleAlert } from 'lucide-react'
 import { Can, useAuth } from '@/features/auth/auth-context'
 import { useProjectsQuery } from '@/features/projects/api'
+import { useUsersQuery } from '@/features/users/api'
 import { useTasksQuery, TASK_STATUSES, TASK_PRIORITIES, type TaskFilters, type TaskListItem } from './api'
 import { TaskFormDialog } from './TaskFormDialog'
 import { KanbanView } from './KanbanView'
@@ -39,6 +40,9 @@ export function TasksPage() {
   // Board and calendar need the whole filtered window, not one table page.
   const tasksQuery = useTasksQuery(view === 'table' ? filters : { ...filters, page: 0, size: 200 })
   const projectsQuery = useProjectsQuery({ search: '', status: '', page: 0 })
+  // Assignee filter needs the user list (user:read) — hidden for employees.
+  const canFilterAssignee = hasPermission('user:read')
+  const usersQuery = useUsersQuery({ search: '', role: '', active: 'true', page: 0 }, canFilterAssignee)
   const [creating, setCreating] = useState(false)
 
   const set = (patch: Partial<TaskFilters>) => setFilters((f) => ({ ...f, ...patch, page: 0 }))
@@ -149,6 +153,21 @@ export function TasksPage() {
             </option>
           ))}
         </select>
+        {canFilterAssignee && (
+          <select
+            value={filters.assigneeId}
+            onChange={(event) => set({ assigneeId: event.target.value })}
+            aria-label={t('tasks.assignee')}
+            className={selectClass}
+          >
+            <option value="">{t('tasks.allAssignees')}</option>
+            {usersQuery.data?.items.map((assignee) => (
+              <option key={assignee.id} value={assignee.id}>
+                {assignee.fullName}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           value={filters.overdue}
           onChange={(event) => set({ overdue: event.target.value })}

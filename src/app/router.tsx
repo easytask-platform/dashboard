@@ -15,6 +15,7 @@ import { ProjectDetailsPage } from '@/features/projects/ProjectDetailsPage'
 import { TasksPage } from '@/features/tasks/TasksPage'
 import { TaskDetailsPage } from '@/features/tasks/TaskDetailsPage'
 import { RecurringPage } from '@/features/recurring/RecurringPage'
+import { ReviewQueuePage } from '@/features/tasks/ReviewQueuePage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { NotificationsPage } from '@/features/notifications/NotificationsPage'
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
           { path: '/projects', element: <ProjectsPage /> },
           { path: '/projects/:projectId', element: <ProjectDetailsPage /> },
           { path: '/tasks', element: <TasksPage /> },
+          {
+            element: <RequirePermission permission="task:review" />,
+            children: [{ path: '/review', element: <ReviewQueuePage /> }],
+          },
           {
             element: <RequirePermission permission="recurring:manage" />,
             children: [{ path: '/tasks/recurring', element: <RecurringPage /> }],

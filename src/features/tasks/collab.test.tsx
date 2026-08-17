@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
@@ -9,6 +9,7 @@ import { renderRoutes, meHandler, signIn, API_BASE_URL } from '@/test/utils'
 let postedComment: unknown = null
 let postedTime: unknown = null
 let uploadedContent: string | null = null
+let editedComment: unknown = null
 
 const server = setupServer(
   meHandler(),
@@ -37,6 +38,10 @@ const server = setupServer(
   http.post(`${API_BASE_URL}/tasks/task1/comments`, async ({ request }) => {
     postedComment = await request.json()
     return HttpResponse.json({}, { status: 201 })
+  }),
+  http.patch(`${API_BASE_URL}/comments/c2`, async ({ request }) => {
+    editedComment = await request.json()
+    return HttpResponse.json({})
   }),
   http.get(`${API_BASE_URL}/tasks/task1/attachments`, () =>
     HttpResponse.json({
@@ -104,6 +109,7 @@ afterEach(() => {
   postedComment = null
   postedTime = null
   uploadedContent = null
+  editedComment = null
 })
 
 function renderTabs() {
@@ -122,6 +128,24 @@ describe('task collaboration tabs', () => {
     await user.type(screen.getByLabelText(/write a comment/i), 'Looks good')
     await user.click(screen.getByRole('button', { name: /post/i }))
     expect(postedComment).toEqual({ text: 'Looks good' })
+  })
+
+  it('edits own comment inline (P3-5)', async () => {
+    const user = userEvent.setup()
+    renderTabs()
+    await screen.findByText('My own comment')
+
+    // Edit affordance exists only on the own comment.
+    expect(screen.getAllByRole('button', { name: /edit/i })).toHaveLength(1)
+    await user.click(screen.getByRole('button', { name: /edit/i }))
+    const input = screen.getByLabelText(/edit comment/i)
+    await user.clear(input)
+    await user.type(input, 'My corrected comment')
+    await user.click(screen.getByRole('button', { name: /save/i }))
+
+    await waitFor(() => expect(editedComment).toEqual({ text: 'My corrected comment' }))
+    // Edit mode closed (the static mock still serves the old text on refetch).
+    await waitFor(() => expect(screen.queryByLabelText(/edit comment/i)).not.toBeInTheDocument())
   })
 
   it('lists and uploads attachments', async () => {

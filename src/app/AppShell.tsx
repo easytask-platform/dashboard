@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
   Bell,
+  ClipboardCheck,
   CalendarCheck2,
   ChartNoAxesColumn,
   CircleUserRound,
@@ -39,6 +40,7 @@ const NAV_ITEMS = [
   // Project/task read access is implicit (dataScope-filtered) — no gate.
   { to: '/projects', key: 'nav.projects', icon: FolderKanban },
   { to: '/tasks', key: 'nav.tasks', icon: CalendarCheck2 },
+  { to: '/review', key: 'nav.review', icon: ClipboardCheck, permission: 'task:review' },
   { to: '/reports', key: 'nav.reports', icon: ChartNoAxesColumn, permission: 'dashboard:manager' },
   { to: '/notifications', key: 'nav.notifications', icon: Bell },
 ] as const

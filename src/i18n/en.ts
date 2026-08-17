@@ -14,6 +14,7 @@ export const en = {
       reports: 'Reports',
       notifications: 'Notifications',
       profile: 'Profile',
+      review: 'Review',
     },
     auth: {
       login: 'Log in',
@@ -149,6 +150,8 @@ export const en = {
       allStatuses: 'All statuses',
       allPriorities: 'All priorities',
       allProjects: 'All projects',
+      assignee: 'Assignee',
+      allAssignees: 'All assignees',
       overdue: 'Overdue',
       overdueOnly: 'Overdue only',
       notOverdue: 'Not overdue',
@@ -173,6 +176,17 @@ export const en = {
         REOPENED: 'Task reopened',
         CANCELLED: 'Task cancelled',
       },
+    },
+    calendar: {
+      today: 'Today',
+      month: 'Month',
+      week: 'Week',
+      dueOn: 'Due on {{date}}',
+      nothingDue: 'Nothing due on this day',
+    },
+    review: {
+      title: 'Review queue',
+      empty: 'Nothing is waiting for review 🎉',
     },
     notifications: {
       markAllRead: 'Mark all read',
@@ -239,6 +253,7 @@ export const en = {
       uploaded: 'File uploaded',
       download: 'Download {{name}}',
       noAttachments: 'No attachments yet',
+      editComment: 'Edit comment',
       workDate: 'Work date',
       hoursSpent: 'Hours',
       note: 'Note',

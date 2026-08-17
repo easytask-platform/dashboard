@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '@/features/auth/auth-context'
 import { useTeamsQuery } from '@/features/teams/api'
 import { useProjectsQuery } from '@/features/projects/api'
+import { useUsersQuery } from '@/features/users/api'
 import {
   useWorkloadReportQuery,
   useProjectProgressReportQuery,
@@ -45,12 +47,40 @@ export function ReportsPage() {
   )
 }
 
+function SummaryCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-card border border-line bg-surface p-4 shadow-card">
+      <p className="text-3xl font-bold tracking-tight">{value}</p>
+      <p className="mt-0.5 text-xs text-ink-soft">{label}</p>
+    </div>
+  )
+}
+
 function WorkloadReport() {
   const { t } = useTranslation()
+  const { hasPermission } = useAuth()
   const [filters, setFilters] = useState({ teamId: '', projectId: '', from: '', to: '', page: 0 })
+  const [assigneeId, setAssigneeId] = useState('')
   const reportQuery = useWorkloadReportQuery(filters)
   const teamsQuery = useTeamsQuery({ search: '', page: 0 })
   const projectsQuery = useProjectsQuery({ search: '', status: '', page: 0 })
+  const canFilterAssignee = hasPermission('user:read')
+  const usersQuery = useUsersQuery({ search: '', role: '', active: 'true', page: 0 }, canFilterAssignee)
+
+  // Assignee narrowing is client-side (the workload endpoint has no such
+  // param) — the report already carries one row per person.
+  const rows = (reportQuery.data?.items ?? []).filter(
+    (item) => !assigneeId || item.userId === assigneeId,
+  )
+  const totals = rows.reduce(
+    (acc, item) => ({
+      assigned: acc.assigned + item.assignedTaskCount,
+      inProgress: acc.inProgress + item.inProgressTaskCount,
+      overdue: acc.overdue + item.overdueTaskCount,
+      hours: acc.hours + item.loggedHours,
+    }),
+    { assigned: 0, inProgress: 0, overdue: 0, hours: 0 },
+  )
 
   const columns: Column<WorkloadItem>[] = [
     { key: 'name', header: t('auth.fullName'), render: (item) => <span className="font-medium">{item.fullName}</span> },
@@ -95,15 +125,38 @@ function WorkloadReport() {
             </option>
           ))}
         </select>
+        {canFilterAssignee && (
+          <select
+            value={assigneeId}
+            onChange={(event) => setAssigneeId(event.target.value)}
+            aria-label={t('tasks.assignee')}
+            className={selectClass}
+          >
+            <option value="">{t('tasks.allAssignees')}</option>
+            {usersQuery.data?.items.map((assignee) => (
+              <option key={assignee.id} value={assignee.id}>
+                {assignee.fullName}
+              </option>
+            ))}
+          </select>
+        )}
         <DateRange
           from={filters.from}
           to={filters.to}
           onChange={(from, to) => setFilters((f) => ({ ...f, from, to, page: 0 }))}
         />
       </div>
+
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <SummaryCard label={t('home.assigned')} value={totals.assigned} />
+        <SummaryCard label={t('status.IN_PROGRESS')} value={totals.inProgress} />
+        <SummaryCard label={t('tasks.overdue')} value={totals.overdue} />
+        <SummaryCard label={t('home.loggedHours')} value={totals.hours} />
+      </div>
+
       <DataTable
         columns={columns}
-        rows={reportQuery.data?.items ?? []}
+        rows={rows}
         rowKey={(item) => item.userId}
         loading={reportQuery.isLoading}
         emptyMessage={t('common.empty')}

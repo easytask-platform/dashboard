@@ -19,7 +19,7 @@ export interface UserFilters {
   page: number
 }
 
-export function useUsersQuery(filters: UserFilters) {
+export function useUsersQuery(filters: UserFilters, enabled = true) {
   return useQuery({
     queryKey: ['users', filters],
     queryFn: async () => {
@@ -30,6 +30,7 @@ export function useUsersQuery(filters: UserFilters) {
       const { data } = await api.get<PageResponse<User>>('/users', { params })
       return data
     },
+    enabled,
   })
 }
 
