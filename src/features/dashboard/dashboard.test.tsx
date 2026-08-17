@@ -57,6 +57,27 @@ const server = setupServer(
       totalPages: 1,
     }),
   ),
+  http.get(`${API_BASE_URL}/activity`, () =>
+    HttpResponse.json({
+      items: [
+        {
+          id: 'ev1',
+          taskId: 'task1',
+          taskTitle: 'Build login screen',
+          projectName: 'Task App',
+          actor: { id: 'u3', fullName: 'Ava Manager' },
+          eventType: 'STATUS_CHANGED',
+          oldValue: 'IN_REVIEW',
+          newValue: 'APPROVED',
+          createdAt: '2026-08-17T10:00:00Z',
+        },
+      ],
+      page: 0,
+      size: 10,
+      totalItems: 1,
+      totalPages: 1,
+    }),
+  ),
   http.get(`${API_BASE_URL}/teams`, () =>
     HttpResponse.json({ items: [], page: 0, size: 20, totalItems: 0, totalPages: 1 }),
   ),
@@ -78,6 +99,10 @@ describe('dashboard home', () => {
     expect(screen.getByText('40')).toBeInTheDocument()
     expect(screen.getAllByText('In progress')[0]).toHaveTextContent(/10/)
     expect(screen.getByText('Ship report')).toBeInTheDocument()
+    // Recent activity feed (P3-4)
+    expect(await screen.findByText('Ava Manager')).toBeInTheDocument()
+    expect(screen.getByText(/changed the status/i)).toBeInTheDocument()
+    expect(screen.getByText('Build login screen')).toBeInTheDocument()
   })
 
   it('renders the manager dashboard for a manager', async () => {

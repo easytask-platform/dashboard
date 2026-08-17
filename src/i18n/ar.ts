@@ -199,6 +199,8 @@ export const ar: typeof en = {
       projectProgress: 'تقدم المشاريع',
       assigned: 'مسندة',
       loggedHours: 'الساعات المسجلة',
+      recentActivity: 'النشاط الأخير',
+      noActivity: 'لا يوجد نشاط بعد',
     },
     reports: {
       workload: 'حمل العمل',

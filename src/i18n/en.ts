@@ -197,6 +197,8 @@ export const en = {
       projectProgress: 'Project progress',
       assigned: 'Assigned',
       loggedHours: 'Logged hours',
+      recentActivity: 'Recent activity',
+      noActivity: 'No activity yet',
     },
     reports: {
       workload: 'Workload',

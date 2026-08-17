@@ -2,9 +2,11 @@ import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/auth-context'
+import { format } from 'date-fns'
 import {
   useAdminDashboardQuery,
   useManagerDashboardQuery,
+  useActivityFeedQuery,
   type OverdueTaskItem,
   type WorkloadItem,
   type ProjectProgressItem,
@@ -47,6 +49,46 @@ export function DashboardPage() {
         <p className="text-sm text-ink-soft">{t('home.employeeHint')}</p>
       )}
     </div>
+  )
+}
+
+/** Org-wide recent-activity table (P3-4/D27) — scoped server-side per role. */
+function RecentActivity() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const feedQuery = useActivityFeedQuery(10)
+
+  return (
+    <Section title={t('home.recentActivity')}>
+      {feedQuery.isLoading ? (
+        <p className="py-6 text-center text-sm text-ink-soft">{t('common.loading')}</p>
+      ) : feedQuery.data?.items.length === 0 ? (
+        <p className="rounded-card border border-line bg-surface py-6 text-center text-sm text-ink-soft shadow-card">
+          {t('home.noActivity')}
+        </p>
+      ) : (
+        <ul className="divide-y divide-line rounded-card border border-line bg-surface shadow-card">
+          {feedQuery.data?.items.map((event) => (
+            <li key={event.id}>
+              <button
+                onClick={() => navigate(`/tasks/${event.taskId}`)}
+                className="flex w-full items-baseline justify-between gap-3 px-4 py-2.5 text-start text-sm hover:bg-paper"
+              >
+                <span className="min-w-0">
+                  <span className="font-medium">{event.actor.fullName}</span>{' '}
+                  <span className="text-ink-soft">{t(`collab.events.${event.eventType}`, event.eventType)}</span>{' '}
+                  <span className="font-medium">{event.taskTitle}</span>{' '}
+                  <span className="text-xs text-ink-soft">· {event.projectName}</span>
+                </span>
+                <span className="shrink-0 text-xs text-ink-soft">
+                  {format(new Date(event.createdAt), 'MM-dd HH:mm')}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
   )
 }
 
@@ -96,6 +138,8 @@ function AdminView() {
       <Section title={t('home.overdue')}>
         <OverdueTable items={data.overdueTasks} />
       </Section>
+
+      <RecentActivity />
     </div>
   )
 }
@@ -190,6 +234,8 @@ function ManagerView() {
           />
         </Section>
       </div>
+
+      <RecentActivity />
     </div>
   )
 }

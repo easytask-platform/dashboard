@@ -67,6 +67,27 @@ export function useManagerDashboardQuery(enabled: boolean) {
   })
 }
 
+export interface OrgActivityItem {
+  id: string
+  taskId: string
+  taskTitle: string
+  projectName: string
+  actor: { id: string; fullName: string }
+  eventType: string
+  oldValue: string | null
+  newValue: string | null
+  createdAt: string
+}
+
+/** Org-wide recent-activity feed (P3-4/D27), scoped server-side. */
+export function useActivityFeedQuery(size = 10) {
+  return useQuery({
+    queryKey: ['activity-feed', size],
+    queryFn: async () =>
+      (await api.get<PageResponse<OrgActivityItem>>('/activity', { params: { page: 0, size } })).data,
+  })
+}
+
 export interface ReportFilters {
   teamId?: string
   projectId?: string
