@@ -18,6 +18,26 @@ let currentToken: string | null = null
  * No-ops gracefully when Firebase isn't configured, the browser lacks
  * support, or the user declines the permission prompt.
  */
+/** True when we should show the "enable notifications" affordance. */
+export function pushAvailable(): boolean {
+  return (
+    pushConfigured &&
+    'serviceWorker' in navigator &&
+    'Notification' in window &&
+    Notification.permission !== 'denied'
+  )
+}
+
+export function pushGranted(): boolean {
+  return pushAvailable() && Notification.permission === 'granted'
+}
+
+/**
+ * Browsers suppress permission prompts that don't come from a user gesture,
+ * so this is called in two ways: automatically on shell mount (registers
+ * silently when permission was ALREADY granted) and from the explicit
+ * "enable notifications" button (which may show the prompt).
+ */
 export async function enableWebPush(onForeground: (push: ForegroundPush) => void): Promise<void> {
   if (!pushConfigured) return
   if (!('serviceWorker' in navigator) || !('Notification' in window)) return

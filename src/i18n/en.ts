@@ -177,6 +177,9 @@ export const en = {
         CANCELLED: 'Task cancelled',
       },
     },
+    push: {
+      enable: 'Enable notifications',
+    },
     calendar: {
       today: 'Today',
       month: 'Month',

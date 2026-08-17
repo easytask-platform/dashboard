@@ -179,6 +179,9 @@ export const ar: typeof en = {
         CANCELLED: 'أُلغيت المهمة',
       },
     },
+    push: {
+      enable: 'تفعيل الإشعارات',
+    },
     calendar: {
       today: 'اليوم',
       month: 'شهر',
