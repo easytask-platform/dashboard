@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-context'
 import { useUnreadCountQuery } from '@/features/notifications/api'
-import { enableWebPush, pushAvailable, pushGranted } from '@/lib/push/push'
+import { enableWebPush, pushAvailable } from '@/lib/push/push'
 import { useToast } from '@/components/ui/Toast'
 import { applyLanguage, storedLanguage } from '@/i18n'
 import { cn } from '@/lib/utils'
@@ -50,20 +50,12 @@ export function AppShell() {
   const { user, hasPermission } = useAuth()
   const toast = useToast()
   const queryClient = useQueryClient()
-  // Browsers only show the permission prompt on a user gesture, so we offer
-  // a button while permission is undecided and auto-register once granted.
-  const [pushEnabled, setPushEnabled] = useState(pushGranted())
-  const [enablingPush, setEnablingPush] = useState(false)
-
   const registerPush = async () => {
-    setEnablingPush(true)
     await enableWebPush((push) => {
       toast.success(push.body ? `${push.title} — ${push.body}` : push.title)
       void queryClient.invalidateQueries({ queryKey: ['notifications'] })
       void queryClient.invalidateQueries({ queryKey: ['notifications-unread'] })
     })
-    setEnablingPush(false)
-    setPushEnabled(pushGranted())
   }
 
   // Web push (P3-6): always attempt on mount — re-registers silently when
@@ -123,17 +115,6 @@ export function AppShell() {
         <header className="flex h-14 items-center justify-between gap-3 border-b border-line bg-surface px-6">
           <span className="text-sm font-medium text-ink-soft">{user?.organizationName}</span>
           <div className="flex items-center gap-2">
-            {pushAvailable() && !pushEnabled && (
-              <button
-                type="button"
-                onClick={() => void registerPush()}
-                disabled={enablingPush}
-                className="flex items-center gap-2 rounded-lg bg-primary-soft px-3 py-1.5 text-sm font-medium text-primary-deep transition-colors hover:bg-primary/20 disabled:opacity-60"
-              >
-                <Bell className="size-4" aria-hidden />
-                {enablingPush ? t('common.loading') : t('push.enable')}
-              </button>
-            )}
             <button
               type="button"
               onClick={() => applyLanguage(storedLanguage() === 'ar' ? 'en' : 'ar')}
