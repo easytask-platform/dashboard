@@ -66,9 +66,12 @@ export function AppShell() {
     setPushEnabled(pushGranted())
   }
 
-  // Web push (P3-6): silent re-registration when permission already granted.
+  // Web push (P3-6): always attempt on mount — re-registers silently when
+  // already granted, and prompts right away where the browser allows
+  // auto-prompts. The header button remains as fallback for browsers that
+  // suppress non-gesture prompts.
   useEffect(() => {
-    if (pushGranted()) void registerPush()
+    if (pushAvailable()) void registerPush()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
