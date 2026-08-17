@@ -3,6 +3,7 @@ import { AppShell } from './AppShell'
 import { RedirectIfAuthed, RequireAuth, RequirePermission } from './guards'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RegisterOrganizationPage } from '@/features/auth/RegisterOrganizationPage'
+import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
 import { ProfilePage } from '@/features/auth/ProfilePage'
 import { UsersPage } from '@/features/users/UsersPage'
 import { RolesPage } from '@/features/roles/RolesPage'
@@ -24,6 +25,9 @@ const router = createBrowserRouter([
       { path: '/register', element: <RegisterOrganizationPage /> },
     ],
   },
+  // Reachable logged-in too: "I forgot my current password" from the change
+  // dialog lands here (the reset revokes all sessions anyway).
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
   {
     element: <RequireAuth />,
     children: [

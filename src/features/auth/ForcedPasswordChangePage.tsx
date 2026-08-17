@@ -90,6 +90,16 @@ export function ForcedPasswordChangePage() {
           </Button>
           <button
             type="button"
+            onClick={async () => {
+              await logout()
+              window.location.href = '/forgot-password'
+            }}
+            className="w-full text-center text-sm text-primary hover:underline"
+          >
+            {t('auth.forgotCurrent')}
+          </button>
+          <button
+            type="button"
             onClick={() => void logout()}
             className="w-full text-center text-sm text-ink-soft hover:text-ink"
           >

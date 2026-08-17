@@ -118,13 +118,25 @@ export function ProfilePage() {
             })}
           />
           <FormError message={apiMessage} />
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setPasswordOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {t('common.save')}
-            </Button>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                await logout()
+                navigate('/forgot-password')
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              {t('auth.forgotCurrent')}
+            </button>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => setPasswordOpen(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {t('common.save')}
+              </Button>
+            </div>
           </div>
         </form>
       </Dialog>
