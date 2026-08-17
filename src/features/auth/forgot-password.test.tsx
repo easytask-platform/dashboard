@@ -27,7 +27,7 @@ const server = setupServer(
   http.post(`${API_BASE_URL}/auth/verify-reset-code`, async ({ request }) => {
     const { token } = (await request.json()) as { token: string }
     verifiedToken = token
-    if (token !== 'GOOD123') {
+    if (token !== '654321') {
       return HttpResponse.json(
         { status: 401, code: 'UNAUTHORIZED', message: 'Invalid or expired code' },
         { status: 401 },
@@ -78,10 +78,10 @@ describe('code-based reset flow (3 separate pages)', () => {
     expect(screen.queryByLabelText(/new password/i)).not.toBeInTheDocument()
     expect(requestedEmail).toBe('ava@acme.test')
 
-    await user.type(screen.getByLabelText(/code from the email/i), 'WRONG')
+    await user.type(screen.getByLabelText(/code from the email/i), '111111')
     await user.click(screen.getByRole('button', { name: /continue/i }))
     expect(await screen.findByText(/invalid or expired/i)).toBeInTheDocument()
-    expect(verifiedToken).toBe('WRONG')
+    expect(verifiedToken).toBe('111111')
   })
 
   it('good code → separate new-password page → reset completes', async () => {
@@ -90,7 +90,7 @@ describe('code-based reset flow (3 separate pages)', () => {
     await user.type(screen.getByLabelText(/email/i), 'ava@acme.test')
     await user.click(screen.getByRole('button', { name: /send code/i }))
 
-    await user.type(await screen.findByLabelText(/code from the email/i), 'GOOD123')
+    await user.type(await screen.findByLabelText(/code from the email/i), '654321')
     await user.click(screen.getByRole('button', { name: /continue/i }))
 
     // Password page: no code field here, only the new password.
@@ -102,7 +102,7 @@ describe('code-based reset flow (3 separate pages)', () => {
     await user.click(screen.getByRole('button', { name: /set new password/i }))
 
     await screen.findByText(/password reset/i)
-    expect(resetBody).toEqual({ token: 'GOOD123', newPassword: 'myOwnSecret9' })
+    expect(resetBody).toEqual({ token: '654321', newPassword: 'myOwnSecret9' })
     expect(sessionStorage.getItem('easytask.resetCode')).toBeNull()
   })
 

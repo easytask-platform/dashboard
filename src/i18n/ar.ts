@@ -47,6 +47,7 @@ export const ar: typeof en = {
       codeSentTo: 'أرسلنا رمزاً إلى {{email}}',
       codeSentToast: 'تم إرسال الرمز إلى {{email}}',
       code: 'الرمز من البريد الإلكتروني',
+      codeFormat: 'رمز من 6 أرقام',
       badCode: 'الرمز غير صحيح أو منتهي الصلاحية',
       verifyCode: 'متابعة',
       codeResent: 'رمز جديد في الطريق إليك',

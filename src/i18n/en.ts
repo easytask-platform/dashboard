@@ -45,6 +45,7 @@ export const en = {
       codeSentTo: 'We sent a code to {{email}}',
       codeSentToast: 'Code sent to {{email}}',
       code: 'Code from the email',
+      codeFormat: '6-digit code',
       badCode: 'That code is invalid or expired',
       verifyCode: 'Continue',
       codeResent: 'A new code is on its way',

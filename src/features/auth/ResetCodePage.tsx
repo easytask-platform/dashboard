@@ -66,6 +66,11 @@ export function ResetCodePage() {
             label={t('auth.code')}
             required
             autoComplete="one-time-code"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            title={t('auth.codeFormat')}
+            className="text-center text-2xl font-semibold tracking-[0.5em]"
             error={codeError}
             {...register('code')}
           />
