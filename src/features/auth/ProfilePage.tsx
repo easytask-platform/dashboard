@@ -1,55 +1,41 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { api } from '@/lib/api/client'
 import { splitApiError } from '@/lib/api/form-errors'
 import { useAuth } from './auth-context'
+import { resetFlow } from './reset-flow'
 import { Button } from '@/components/ui/Button'
-import { Dialog, ConfirmDialog } from '@/components/ui/Dialog'
-import { TextField, FormError } from '@/components/ui/Field'
+import { ConfirmDialog } from '@/components/ui/Dialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { RoleBadge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
-
-interface PasswordForm {
-  currentPassword: string
-  newPassword: string
-  confirmNewPassword: string
-}
 
 export function ProfilePage() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
-  const [passwordOpen, setPasswordOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
-  const [apiMessage, setApiMessage] = useState<string | null>(null)
-  const [apiFields, setApiFields] = useState<Record<string, string>>({})
-  const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { isSubmitting, errors },
-  } = useForm<PasswordForm>()
+  const [sendingCode, setSendingCode] = useState(false)
 
-  const submitPassword = handleSubmit(async ({ currentPassword, newPassword }) => {
-    setApiMessage(null)
-    setApiFields({})
+  /**
+   * Code-based change (P3 UX): we know who is logged in, so the code goes
+   * straight to their email — no forms, no current password.
+   */
+  const startPasswordChange = async () => {
+    if (!user) return
+    setSendingCode(true)
     try {
-      await api.patch('/me/password', { currentPassword, newPassword })
-      setPasswordOpen(false)
-      reset()
-      toast.success(t('auth.passwordChanged'))
+      await resetFlow.start(user.email)
+      toast.success(t('auth.codeSentToast', { email: user.email }))
+      navigate('/reset-code')
     } catch (error) {
-      const split = splitApiError(error)
-      setApiMessage(split.message)
-      setApiFields(split.fields)
+      toast.error(splitApiError(error).message ?? t('common.error'))
+    } finally {
+      setSendingCode(false)
     }
-  })
+  }
 
   const confirmLogout = async () => {
     setLoggingOut(true)
@@ -78,68 +64,16 @@ export function ProfilePage() {
             </div>
           ))}
         </dl>
-        <div className="mt-6 flex gap-2 border-t border-line pt-6">
-          <Button variant="secondary" onClick={() => setPasswordOpen(true)}>
-            {t('auth.changePassword')}
+        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-line pt-6">
+          <Button variant="secondary" onClick={() => void startPasswordChange()} disabled={sendingCode}>
+            {sendingCode ? t('common.loading') : t('auth.changePassword')}
           </Button>
           <Button variant="danger" onClick={() => setLogoutOpen(true)}>
             {t('auth.logout')}
           </Button>
+          <p className="w-full text-xs text-ink-soft">{t('auth.changePasswordHint')}</p>
         </div>
       </div>
-
-      <Dialog open={passwordOpen} onClose={() => setPasswordOpen(false)} title={t('auth.changePassword')}>
-        <form onSubmit={submitPassword} className="space-y-4">
-          <TextField
-            label={t('auth.currentPassword')}
-            type="password"
-            autoComplete="current-password"
-            required
-            error={apiFields.currentPassword}
-            {...register('currentPassword')}
-          />
-          <TextField
-            label={t('auth.newPassword')}
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            error={apiFields.newPassword}
-            {...register('newPassword')}
-          />
-          <TextField
-            label={t('auth.confirmPassword')}
-            type="password"
-            autoComplete="new-password"
-            required
-            error={errors.confirmNewPassword?.message}
-            {...register('confirmNewPassword', {
-              validate: (value) => value === watch('newPassword') || t('auth.passwordMismatch'),
-            })}
-          />
-          <FormError message={apiMessage} />
-          <div className="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={async () => {
-                await logout()
-                navigate('/forgot-password')
-              }}
-              className="text-sm text-primary hover:underline"
-            >
-              {t('auth.forgotCurrent')}
-            </button>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => setPasswordOpen(false)}>
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {t('common.save')}
-              </Button>
-            </div>
-          </div>
-        </form>
-      </Dialog>
 
       <ConfirmDialog
         open={logoutOpen}

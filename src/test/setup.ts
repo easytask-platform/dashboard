@@ -17,4 +17,5 @@ HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  sessionStorage.clear()
 })

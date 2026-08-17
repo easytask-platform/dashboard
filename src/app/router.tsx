@@ -4,6 +4,8 @@ import { RedirectIfAuthed, RequireAuth, RequirePermission } from './guards'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RegisterOrganizationPage } from '@/features/auth/RegisterOrganizationPage'
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
+import { ResetCodePage } from '@/features/auth/ResetCodePage'
+import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage'
 import { ProfilePage } from '@/features/auth/ProfilePage'
 import { UsersPage } from '@/features/users/UsersPage'
 import { RolesPage } from '@/features/roles/RolesPage'
@@ -25,9 +27,11 @@ const router = createBrowserRouter([
       { path: '/register', element: <RegisterOrganizationPage /> },
     ],
   },
-  // Reachable logged-in too: "I forgot my current password" from the change
-  // dialog lands here (the reset revokes all sessions anyway).
+  // The 3-step code flow is reachable logged-in too (change password) and
+  // logged-out (forgot password) — no guards.
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-code', element: <ResetCodePage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   {
     element: <RequireAuth />,
     children: [

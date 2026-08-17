@@ -4,34 +4,28 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { RequireAuth } from '@/app/guards'
+import { ResetCodePage } from './ResetCodePage'
 import { renderRoutes, meHandler, signIn, testUser, API_BASE_URL } from '@/test/utils'
 
-let changedBody: unknown = null
+let requestedEmail: string | null = null
 
 const server = setupServer(
   meHandler({ ...testUser, mustChangePassword: true }),
-  http.patch(`${API_BASE_URL}/me/password`, async ({ request }) => {
-    changedBody = await request.json()
+  http.post(`${API_BASE_URL}/auth/forgot-password`, async ({ request }) => {
+    requestedEmail = ((await request.json()) as { email: string }).email
     return new HttpResponse(null, { status: 204 })
   }),
-  http.post(`${API_BASE_URL}/auth/login`, () =>
-    HttpResponse.json({
-      user: { ...testUser, mustChangePassword: false },
-      accessToken: 'fresh-at',
-      refreshToken: 'fresh-rt',
-    }),
-  ),
 )
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterAll(() => server.close())
 afterEach(() => {
   server.resetHandlers()
-  changedBody = null
+  requestedEmail = null
 })
 
-describe('forced password change (P3-2)', () => {
-  it('blocks the whole app until the admin-set password is replaced', async () => {
+describe('forced password change (P3-2, code-based)', () => {
+  it('blocks the app and one click emails the code to the OWN account', async () => {
     signIn()
     const user = userEvent.setup()
     renderRoutes(
@@ -40,21 +34,20 @@ describe('forced password change (P3-2)', () => {
           element: <RequireAuth />,
           children: [{ path: '/', element: <div>home page</div> }],
         },
+        { path: '/reset-code', element: <ResetCodePage /> },
       ],
       '/',
     )
 
-    // Gate visible, app hidden.
+    // Gate visible, app hidden, no password inputs anywhere.
     expect(await screen.findByText(/choose your own password/i)).toBeInTheDocument()
     expect(screen.queryByText('home page')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument()
 
-    await user.type(screen.getByLabelText(/current password/i), 'tempPass123')
-    await user.type(screen.getByLabelText(/new password/i), 'myOwnSecret9')
-    await user.type(screen.getByLabelText(/confirm password/i), 'myOwnSecret9')
-    await user.click(screen.getByRole('button', { name: /set password and continue/i }))
+    await user.click(screen.getByRole('button', { name: /email me a code/i }))
 
-    // After the change + relogin the app unblocks.
-    expect(await screen.findByText('home page')).toBeInTheDocument()
-    expect(changedBody).toEqual({ currentPassword: 'tempPass123', newPassword: 'myOwnSecret9' })
+    // The code went to the logged-in account without asking for the email.
+    expect(await screen.findByText(/we sent a code to ava@acme.test/i)).toBeInTheDocument()
+    expect(requestedEmail).toBe('ava@acme.test')
   })
 })

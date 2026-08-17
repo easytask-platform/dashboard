@@ -9,6 +9,8 @@ import { ProfilePage } from './ProfilePage'
 import { tokenStore } from '@/lib/api/token-store'
 import { renderRoutes, meHandler, signIn, testUser, API_BASE_URL } from '@/test/utils'
 
+let forgotEmail: string | null = null
+
 const server = setupServer(
   meHandler(),
   http.post(`${API_BASE_URL}/auth/login`, async ({ request }) => {
@@ -27,19 +29,8 @@ const server = setupServer(
       { status: 409 },
     ),
   ),
-  http.patch(`${API_BASE_URL}/me/password`, async ({ request }) => {
-    const { currentPassword } = (await request.json()) as { currentPassword: string }
-    if (currentPassword === 'wrong') {
-      return HttpResponse.json(
-        {
-          status: 400,
-          code: 'VALIDATION_ERROR',
-          message: 'Validation failed',
-          fields: { currentPassword: 'Current password is incorrect' },
-        },
-        { status: 400 },
-      )
-    }
+  http.post(`${API_BASE_URL}/auth/forgot-password`, async ({ request }) => {
+    forgotEmail = ((await request.json()) as { email: string }).email
     return new HttpResponse(null, { status: 204 })
   }),
   http.post(`${API_BASE_URL}/auth/logout`, () => new HttpResponse(null, { status: 204 })),
@@ -47,7 +38,10 @@ const server = setupServer(
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterAll(() => server.close())
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  forgotEmail = null
+})
 
 describe('login', () => {
   it('stores tokens and navigates home on success', async () => {
@@ -105,18 +99,22 @@ describe('register organization', () => {
 })
 
 describe('profile', () => {
-  it('shows identity and maps field errors on change password', async () => {
+  it('change password sends the code to the OWN email and goes to the code page', async () => {
     signIn()
     const user = userEvent.setup()
-    renderRoutes([{ path: '/profile', element: <ProfilePage /> }], '/profile')
+    renderRoutes(
+      [
+        { path: '/profile', element: <ProfilePage /> },
+        { path: '/reset-code', element: <div>code page</div> },
+      ],
+      '/profile',
+    )
     expect(await screen.findByText('ava@acme.test')).toBeInTheDocument()
 
+    // One click — no email entry, no current password, no dialog.
     await user.click(screen.getByRole('button', { name: /change password/i }))
-    await user.type(screen.getByLabelText(/current password/i), 'wrong')
-    await user.type(screen.getByLabelText(/new password/i), 'newPassword1')
-    await user.type(screen.getByLabelText(/confirm password/i), 'newPassword1')
-    await user.click(screen.getByRole('button', { name: /save/i }))
-    expect(await screen.findByText(/current password is incorrect/i)).toBeInTheDocument()
+    expect(await screen.findByText('code page')).toBeInTheDocument()
+    expect(forgotEmail).toBe('ava@acme.test')
   })
 
   it('logout confirms, revokes, clears tokens, and redirects', async () => {

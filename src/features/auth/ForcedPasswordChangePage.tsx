@@ -1,49 +1,38 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { KeyRound } from 'lucide-react'
-import { api } from '@/lib/api/client'
 import { splitApiError } from '@/lib/api/form-errors'
 import { useAuth } from './auth-context'
-import { TextField, FormError } from '@/components/ui/Field'
+import { resetFlow } from './reset-flow'
+import { FormError } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 
-interface ForcedPasswordForm {
-  currentPassword: string
-  newPassword: string
-  confirmNewPassword: string
-}
-
 /**
- * Blocking screen shown when the current password was chosen by an admin
- * (P3-2/D24): nothing else is reachable until the user picks their own.
+ * Blocking screen when the current password was chosen by an admin
+ * (P3-2/D24). Same code-based flow as everywhere else: one click emails a
+ * code to the account, then code page → new password page.
  */
 export function ForcedPasswordChangePage() {
   const { t } = useTranslation()
-  const { user, login, logout } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [apiMessage, setApiMessage] = useState<string | null>(null)
-  const [apiFields, setApiFields] = useState<Record<string, string>>({})
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { isSubmitting, errors },
-  } = useForm<ForcedPasswordForm>()
+  const [sending, setSending] = useState(false)
 
-  const submit = handleSubmit(async ({ currentPassword, newPassword }) => {
+  const sendCode = async () => {
+    if (!user) return
+    setSending(true)
     setApiMessage(null)
-    setApiFields({})
     try {
-      await api.patch('/me/password', { currentPassword, newPassword })
-      // The change revoked every session server-side — log back in with the
-      // new password for fresh tokens and the cleared flag.
-      await login(user!.email, newPassword)
+      await resetFlow.start(user.email)
+      navigate('/reset-code')
     } catch (error) {
-      const split = splitApiError(error)
-      setApiMessage(split.message)
-      setApiFields(split.fields)
+      setApiMessage(splitApiError(error).message)
+    } finally {
+      setSending(false)
     }
-  })
+  }
 
   return (
     <div className="grid min-h-screen place-items-center bg-paper p-6">
@@ -56,48 +45,12 @@ export function ForcedPasswordChangePage() {
           <p className="mt-1 text-sm text-ink-soft">{t('auth.forcedChangeSubtitle', { email: user?.email })}</p>
         </div>
 
-        <form onSubmit={submit} className="space-y-4 rounded-card border border-line bg-surface p-6 shadow-card">
-          <TextField
-            label={t('auth.currentPassword')}
-            type="password"
-            autoComplete="current-password"
-            required
-            error={apiFields.currentPassword}
-            {...register('currentPassword')}
-          />
-          <TextField
-            label={t('auth.newPassword')}
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            error={apiFields.newPassword}
-            {...register('newPassword')}
-          />
-          <TextField
-            label={t('auth.confirmPassword')}
-            type="password"
-            autoComplete="new-password"
-            required
-            error={errors.confirmNewPassword?.message}
-            {...register('confirmNewPassword', {
-              validate: (value) => value === watch('newPassword') || t('auth.passwordMismatch'),
-            })}
-          />
+        <div className="space-y-4 rounded-card border border-line bg-surface p-6 shadow-card">
+          <p className="text-sm text-ink-soft">{t('auth.forcedChangeExplain')}</p>
           <FormError message={apiMessage} />
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? t('common.loading') : t('auth.forcedChangeAction')}
+          <Button onClick={() => void sendCode()} disabled={sending} className="w-full">
+            {sending ? t('common.loading') : t('auth.emailMeCode')}
           </Button>
-          <button
-            type="button"
-            onClick={async () => {
-              await logout()
-              window.location.href = '/forgot-password'
-            }}
-            className="w-full text-center text-sm text-primary hover:underline"
-          >
-            {t('auth.forgotCurrent')}
-          </button>
           <button
             type="button"
             onClick={() => void logout()}
@@ -105,7 +58,7 @@ export function ForcedPasswordChangePage() {
           >
             {t('auth.logout')}
           </button>
-        </form>
+        </div>
       </div>
     </div>
   )
