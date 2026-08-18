@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -6,20 +6,26 @@ import {
   Bell,
   ClipboardCheck,
   CalendarCheck2,
+  CalendarRange,
   ChartNoAxesColumn,
   CircleUserRound,
   FolderKanban,
   LayoutDashboard,
   Languages,
+  Moon,
+  Sun,
+  ScrollText,
   ShieldCheck,
   UsersRound,
   Contact,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-context'
+import { Avatar } from '@/components/ui/Avatar'
 import { useUnreadCountQuery } from '@/features/notifications/api'
 import { enableWebPush, pushAvailable } from '@/lib/push/push'
 import { useToast } from '@/components/ui/Toast'
 import { applyLanguage, storedLanguage } from '@/i18n'
+import { effectiveTheme, toggleTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
 function UnreadBadge() {
@@ -32,6 +38,23 @@ function UnreadBadge() {
   )
 }
 
+/** FR-12: light/dark toggle, persisted locally (P4-2/D31). */
+function ThemeToggle() {
+  const { t } = useTranslation()
+  const [theme, setTheme] = useState(effectiveTheme)
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(toggleTheme())}
+      aria-label={t('common.toggleTheme')}
+      title={t('common.toggleTheme')}
+      className="flex items-center rounded-lg border border-line p-2 text-ink-soft transition-colors hover:bg-paper"
+    >
+      {theme === 'dark' ? <Sun className="size-4" aria-hidden /> : <Moon className="size-4" aria-hidden />}
+    </button>
+  )
+}
+
 const NAV_ITEMS = [
   { to: '/', key: 'nav.dashboard', icon: LayoutDashboard, end: true },
   { to: '/users', key: 'nav.users', icon: UsersRound, permission: 'user:read' },
@@ -40,8 +63,10 @@ const NAV_ITEMS = [
   // Project/task read access is implicit (dataScope-filtered) — no gate.
   { to: '/projects', key: 'nav.projects', icon: FolderKanban },
   { to: '/tasks', key: 'nav.tasks', icon: CalendarCheck2 },
+  { to: '/summary', key: 'nav.summary', icon: CalendarRange },
   { to: '/review', key: 'nav.review', icon: ClipboardCheck, permission: 'task:review' },
   { to: '/reports', key: 'nav.reports', icon: ChartNoAxesColumn, permission: 'dashboard:manager' },
+  { to: '/audit', key: 'nav.audit', icon: ScrollText, permission: 'audit:read' },
   { to: '/notifications', key: 'nav.notifications', icon: Bell },
 ] as const
 
@@ -106,7 +131,7 @@ export function AppShell() {
             )
           }
         >
-          <CircleUserRound className="size-4.5" aria-hidden />
+          {user ? <Avatar person={user} size="xs" /> : <CircleUserRound className="size-4.5" aria-hidden />}
           <span className="truncate">{user?.fullName}</span>
         </NavLink>
       </aside>
@@ -115,6 +140,7 @@ export function AppShell() {
         <header className="flex h-14 items-center justify-between gap-3 border-b border-line bg-surface px-6">
           <span className="text-sm font-medium text-ink-soft">{user?.organizationName}</span>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button
               type="button"
               onClick={() => applyLanguage(storedLanguage() === 'ar' ? 'en' : 'ar')}

@@ -11,6 +11,9 @@ import {
   type WorkloadItem,
   type ProjectProgressItem,
 } from './api'
+import { Star, X } from 'lucide-react'
+import { useFocusQuery, useUnpinTask } from '@/features/focus/api'
+import { Avatar } from '@/components/ui/Avatar'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { DataTable, type Column } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/Badge'
@@ -45,10 +48,52 @@ export function DashboardPage() {
   return (
     <div>
       <PageHeader title={t('home.welcome', { name: user?.fullName.split(' ')[0] })} />
+      <FocusBoard />
       {isAdmin ? <AdminView /> : isManager ? <ManagerView /> : (
         <p className="text-sm text-ink-soft">{t('home.employeeHint')}</p>
       )}
     </div>
+  )
+}
+
+/** Personal daily-focus board (P4-7/D33, FR-29): pinned tasks, lifecycle-neutral. */
+function FocusBoard() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const focusQuery = useFocusQuery()
+  const unpinTask = useUnpinTask()
+
+  if (!focusQuery.data || focusQuery.data.length === 0) return null
+  return (
+    <Section title={t('focus.title')}>
+      <ul className="divide-y divide-line rounded-card border border-line bg-surface shadow-card">
+        {focusQuery.data.map((task) => (
+          <li key={task.id} className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-paper">
+            <Star className="size-4 shrink-0 fill-warning text-warning" aria-hidden />
+            <button
+              onClick={() => navigate(`/tasks/${task.id}`)}
+              className="flex min-w-0 flex-1 items-center gap-2 text-start"
+            >
+              <span className="truncate font-medium">{task.title}</span>
+              <span className="shrink-0 text-xs text-ink-soft">· {task.projectName}</span>
+              <StatusBadge status={task.status} />
+              {task.dueDate && (
+                <span className={task.overdue ? 'text-xs font-semibold text-danger' : 'text-xs text-ink-soft'}>
+                  {task.dueDate}
+                </span>
+              )}
+            </button>
+            <button
+              aria-label={t('focus.unpin')}
+              onClick={() => unpinTask.mutate(task.id)}
+              className="shrink-0 text-ink-soft hover:text-ink"
+            >
+              <X className="size-4" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Section>
   )
 }
 
@@ -74,11 +119,14 @@ function RecentActivity() {
                 onClick={() => navigate(`/tasks/${event.taskId}`)}
                 className="flex w-full items-baseline justify-between gap-3 px-4 py-2.5 text-start text-sm hover:bg-paper"
               >
-                <span className="min-w-0">
-                  <span className="font-medium">{event.actor.fullName}</span>{' '}
-                  <span className="text-ink-soft">{t(`collab.events.${event.eventType}`, event.eventType)}</span>{' '}
-                  <span className="font-medium">{event.taskTitle}</span>{' '}
-                  <span className="text-xs text-ink-soft">· {event.projectName}</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <Avatar person={event.actor} size="xs" />
+                  <span className="min-w-0">
+                    <span className="font-medium">{event.actor.fullName}</span>{' '}
+                    <span className="text-ink-soft">{t(`collab.events.${event.eventType}`, event.eventType)}</span>{' '}
+                    <span className="font-medium">{event.taskTitle}</span>{' '}
+                    <span className="text-xs text-ink-soft">· {event.projectName}</span>
+                  </span>
                 </span>
                 <span className="shrink-0 text-xs text-ink-soft">
                   {format(new Date(event.createdAt), 'MM-dd HH:mm')}

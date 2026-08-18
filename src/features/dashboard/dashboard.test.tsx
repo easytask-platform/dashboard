@@ -84,6 +84,7 @@ const server = setupServer(
   http.get(`${API_BASE_URL}/projects`, () =>
     HttpResponse.json({ items: [], page: 0, size: 20, totalItems: 0, totalPages: 1 }),
   ),
+  http.get(`${API_BASE_URL}/me/focus`, () => HttpResponse.json({ items: [] })),
 )
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))

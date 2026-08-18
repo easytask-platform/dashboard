@@ -83,9 +83,31 @@ export function useUpdateProject() {
   })
 }
 
+/**
+ * Project report export (P4-12/D40, AF-10). Fetched as an authenticated blob;
+ * PDF triggers a file download, HTML opens in a new tab.
+ */
+export async function downloadProjectReport(projectId: string, projectName: string, format: 'pdf' | 'html') {
+  const { data } = await api.get<Blob>(`/projects/${projectId}/report`, {
+    params: { format },
+    responseType: 'blob',
+  })
+  const url = URL.createObjectURL(data)
+  if (format === 'html') {
+    window.open(url, '_blank', 'noopener')
+  } else {
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `${projectName.replace(/[^\p{L}\p{N} _-]/gu, '').trim() || 'project'}-report.pdf`
+    anchor.click()
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
 export function useProjectMembersQuery(projectId: string) {
   return useQuery({
     queryKey: ['project-members', projectId],
+    enabled: !!projectId,
     queryFn: async () => (await api.get<{ items: Member[] }>(`/projects/${projectId}/members`)).data.items,
   })
 }

@@ -5,13 +5,16 @@ import { Plus, Repeat2, TriangleAlert } from 'lucide-react'
 import { Can, useAuth } from '@/features/auth/auth-context'
 import { useProjectsQuery } from '@/features/projects/api'
 import { useUsersQuery } from '@/features/users/api'
+import { useProjectTagsQuery } from '@/features/tags/api'
+import { QuickFilterBar } from '@/features/filters/QuickFilterBar'
 import { useTasksQuery, TASK_STATUSES, TASK_PRIORITIES, type TaskFilters, type TaskListItem } from './api'
 import { TaskFormDialog } from './TaskFormDialog'
 import { KanbanView } from './KanbanView'
 import { CalendarView } from './CalendarView'
 import { PageHeader, SearchInput } from '@/components/ui/PageHeader'
 import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
-import { StatusBadge, PriorityBadge } from '@/components/ui/Badge'
+import { StatusBadge, PriorityBadge, BlockedBadge } from '@/components/ui/Badge'
+import { TagChip } from '@/components/ui/TagChip'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +36,7 @@ export function TasksPage() {
     priority: '',
     projectId: searchParams.get('projectId') ?? '',
     assigneeId: '',
+    tagId: '',
     overdue: searchParams.get('overdue') ?? '',
     page: 0,
   })
@@ -43,9 +47,28 @@ export function TasksPage() {
   // Assignee filter needs the user list (user:read) — hidden for employees.
   const canFilterAssignee = hasPermission('user:read')
   const usersQuery = useUsersQuery({ search: '', role: '', active: 'true', page: 0 }, canFilterAssignee)
+  // Tags are project-scoped (D32): the tag filter appears once a project is picked.
+  const tagsQuery = useProjectTagsQuery(filters.projectId)
   const [creating, setCreating] = useState(false)
 
   const set = (patch: Partial<TaskFilters>) => setFilters((f) => ({ ...f, ...patch, page: 0 }))
+
+  // Saved-filter payloads (D42): the string filter fields, empty ones dropped.
+  const FILTER_KEYS = ['search', 'status', 'priority', 'projectId', 'assigneeId', 'tagId', 'overdue'] as const
+  const currentFilterPayload = Object.fromEntries(
+    FILTER_KEYS.filter((key) => filters[key]).map((key) => [key, filters[key]]),
+  )
+  const applySavedFilter = (saved: Record<string, string>) =>
+    setFilters({
+      search: saved.search ?? '',
+      status: saved.status ?? '',
+      priority: saved.priority ?? '',
+      projectId: saved.projectId ?? '',
+      assigneeId: saved.assigneeId ?? '',
+      tagId: saved.tagId ?? '',
+      overdue: saved.overdue ?? '',
+      page: 0,
+    })
 
   const columns: Column<TaskListItem>[] = [
     {
@@ -58,10 +81,26 @@ export function TasksPage() {
             {task.title}
           </p>
           <p className="text-xs text-ink-soft">{task.projectName}</p>
+          {task.tags.length > 0 && (
+            <p className="mt-1 flex flex-wrap gap-1">
+              {task.tags.map((tag) => (
+                <TagChip key={tag.id} name={tag.name} color={tag.color} />
+              ))}
+            </p>
+          )}
         </div>
       ),
     },
-    { key: 'status', header: t('projects.status'), render: (task) => <StatusBadge status={task.status} /> },
+    {
+      key: 'status',
+      header: t('projects.status'),
+      render: (task) => (
+        <span className="flex flex-wrap items-center gap-1">
+          <StatusBadge status={task.status} />
+          {task.blocked && <BlockedBadge reason={task.blockedReason} />}
+        </span>
+      ),
+    },
     { key: 'priority', header: t('tasks.priority'), render: (task) => <PriorityBadge priority={task.priority} /> },
     {
       key: 'due',
@@ -87,6 +126,18 @@ export function TasksPage() {
         </span>
       ),
     },
+    {
+      key: 'checklist',
+      header: t('checklist.title'),
+      render: (task) =>
+        task.checklistTotal > 0 ? (
+          <span className={task.checklistDone === task.checklistTotal ? 'text-success' : 'text-ink-soft'}>
+            {task.checklistDone}/{task.checklistTotal}
+          </span>
+        ) : (
+          <span className="text-ink-soft">—</span>
+        ),
+    },
   ]
 
   return (
@@ -110,6 +161,12 @@ export function TasksPage() {
             )}
           </>
         }
+      />
+
+      <QuickFilterBar
+        currentFilters={currentFilterPayload}
+        hasActiveFilters={Object.keys(currentFilterPayload).length > 0}
+        onApply={applySavedFilter}
       />
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -142,7 +199,7 @@ export function TasksPage() {
         </select>
         <select
           value={filters.projectId}
-          onChange={(event) => set({ projectId: event.target.value })}
+          onChange={(event) => set({ projectId: event.target.value, tagId: '' })}
           aria-label={t('nav.projects')}
           className={selectClass}
         >
@@ -153,6 +210,21 @@ export function TasksPage() {
             </option>
           ))}
         </select>
+        {filters.projectId && (tagsQuery.data?.length ?? 0) > 0 && (
+          <select
+            value={filters.tagId}
+            onChange={(event) => set({ tagId: event.target.value })}
+            aria-label={t('tags.filter')}
+            className={selectClass}
+          >
+            <option value="">{t('tags.all')}</option>
+            {tagsQuery.data?.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
+        )}
         {canFilterAssignee && (
           <select
             value={filters.assigneeId}

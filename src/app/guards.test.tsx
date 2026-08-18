@@ -20,6 +20,7 @@ const me: AuthUser = {
   permissions: ['task:read'],
   organizationName: 'Acme',
   mustChangePassword: false,
+  avatarUrl: null,
 }
 
 const server = setupServer(http.get(`${API_BASE_URL}/me`, () => HttpResponse.json(me)))

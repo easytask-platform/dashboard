@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useProjectsQuery, useProjectMembersQuery } from '@/features/projects/api'
+import { useProjectTagsQuery } from '@/features/tags/api'
+import { TagChip } from '@/components/ui/TagChip'
 import { useCreateTask, useUpdateTask, TASK_PRIORITIES, type TaskDetails, type TaskPriority } from './api'
 import { splitApiError } from '@/lib/api/form-errors'
 import { Dialog } from '@/components/ui/Dialog'
@@ -38,6 +40,7 @@ export function TaskFormDialog({ open, editing, defaultProjectId, onClose }: Tas
   const [assigneeIds, setAssigneeIds] = useState<Set<string>>(
     () => new Set(editing?.assignees.map((assignee) => assignee.id)),
   )
+  const [tagIds, setTagIds] = useState<Set<string>>(() => new Set(editing?.tags.map((tag) => tag.id)))
 
   const form = useForm<TaskFormValues>({
     values: {
@@ -69,6 +72,16 @@ export function TaskFormDialog({ open, editing, defaultProjectId, onClose }: Tas
     })
   }
 
+  const projectTagsQuery = useProjectTagsQuery(selectedProjectId || editing?.projectId || '')
+  const toggleTag = (tagId: string) => {
+    setTagIds((current) => {
+      const next = new Set(current)
+      if (next.has(tagId)) next.delete(tagId)
+      else next.add(tagId)
+      return next
+    })
+  }
+
   const submit = form.handleSubmit(async (values) => {
     setApiMessage(null)
     setApiFields({})
@@ -80,6 +93,7 @@ export function TaskFormDialog({ open, editing, defaultProjectId, onClose }: Tas
       dueDate: values.dueDate || null,
       estimatedHours: values.estimatedHours ? Number(values.estimatedHours) : null,
       assigneeIds: [...assigneeIds],
+      tagIds: [...tagIds],
     }
     try {
       if (editing) await updateTask.mutateAsync({ taskId: editing.id, ...body })
@@ -171,6 +185,24 @@ export function TaskFormDialog({ open, editing, defaultProjectId, onClose }: Tas
             </div>
           )}
         </FieldWrapper>
+
+        {(projectTagsQuery.data?.length ?? 0) > 0 && (
+          <FieldWrapper label={t('tags.title')} error={apiFields.tagIds}>
+            <div className="flex flex-wrap gap-2 rounded-lg border border-line bg-paper p-3">
+              {projectTagsQuery.data?.map((tag) => (
+                <label key={tag.id} className="flex cursor-pointer items-center gap-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={tagIds.has(tag.id)}
+                    onChange={() => toggleTag(tag.id)}
+                    className="accent-(--color-primary)"
+                  />
+                  <TagChip name={tag.name} color={tag.color} />
+                </label>
+              ))}
+            </div>
+          </FieldWrapper>
+        )}
 
         <FormError message={apiMessage} />
         <div className="flex justify-end gap-2">

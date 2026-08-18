@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ArrowRight, ListTree, Plus } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarOff, ListTree, Plus } from 'lucide-react'
 import { useProjectsQuery, useProjectMembersQuery } from '@/features/projects/api'
 import { TASK_PRIORITIES, type TaskPriority } from '@/features/tasks/api'
 import {
@@ -14,6 +14,7 @@ import {
   type RecurringRule,
 } from './api'
 import { splitApiError } from '@/lib/api/form-errors'
+import { OccurrencesDialog } from './OccurrencesDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
 import { StatusBadge } from '@/components/ui/Badge'
@@ -51,6 +52,7 @@ export function RecurringPage() {
 
   const [creating, setCreating] = useState(false)
   const [viewingTasksOf, setViewingTasksOf] = useState<RecurringRule | null>(null)
+  const [occurrencesOf, setOccurrencesOf] = useState<RecurringRule | null>(null)
   const generatedQuery = useGeneratedTasksQuery(viewingTasksOf?.id ?? null)
 
   const [assigneeIds, setAssigneeIds] = useState<Set<string>>(new Set())
@@ -135,11 +137,21 @@ export function RecurringPage() {
     {
       key: 'actions',
       header: <span className="sr-only">{t('common.actions')}</span>,
-      className: 'w-16',
+      className: 'w-24',
       render: (rule) => (
-        <Button variant="ghost" size="icon" aria-label={t('recurring.viewGenerated')} onClick={() => setViewingTasksOf(rule)}>
-          <ListTree className="size-4" />
-        </Button>
+        <span className="flex gap-1">
+          <Button variant="ghost" size="icon" aria-label={t('recurring.viewGenerated')} onClick={() => setViewingTasksOf(rule)}>
+            <ListTree className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t('recurring.occurrences', { title: rule.title })}
+            onClick={() => setOccurrencesOf(rule)}
+          >
+            <CalendarOff className="size-4" />
+          </Button>
+        </span>
       ),
     },
   ]
@@ -197,6 +209,8 @@ export function RecurringPage() {
         emptyMessage={t('recurring.empty')}
       />
       <Pagination page={rulesQuery.data} onPageChange={(page) => setFilters((f) => ({ ...f, page }))} />
+
+      <OccurrencesDialog rule={occurrencesOf} onClose={() => setOccurrencesOf(null)} />
 
       <Dialog open={creating} onClose={() => setCreating(false)} title={t('recurring.create')} wide>
         <form onSubmit={submit} className="space-y-4">

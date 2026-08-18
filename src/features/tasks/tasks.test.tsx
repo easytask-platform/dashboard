@@ -50,7 +50,8 @@ const taskListItem = {
   estimatedHours: 6,
   totalLoggedHours: 2,
   overdue: true,
-  assignees: [{ id: 'u2', fullName: 'Sam Employee' }],
+  assignees: [{ id: 'u2', fullName: 'Sam Employee', avatarUrl: null }],
+  tags: [{ id: 'tag1', name: 'Frontend', color: '#5560c1' }],
 }
 
 let statusBody: unknown = null
@@ -66,7 +67,7 @@ const server = setupServer(
     HttpResponse.json({
       ...taskListItem,
       description: 'Create the login screen',
-      assignees: [{ id: 'u2', fullName: 'Sam Employee', email: 'sam@acme.test' }],
+      assignees: [{ id: 'u2', fullName: 'Sam Employee', email: 'sam@acme.test', avatarUrl: null }],
       createdAt: '2026-06-29T10:00:00Z',
       updatedAt: '2026-06-29T12:00:00Z',
     }),
@@ -78,6 +79,7 @@ const server = setupServer(
   http.get(`${API_BASE_URL}/projects`, () =>
     HttpResponse.json({ items: [], page: 0, size: 20, totalItems: 0, totalPages: 1 }),
   ),
+  http.get(`${API_BASE_URL}/me/saved-filters`, () => HttpResponse.json({ items: [] })),
 )
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))

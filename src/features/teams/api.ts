@@ -14,6 +14,7 @@ export interface Member {
   fullName: string
   email: string
   role: string
+  avatarUrl: string | null
 }
 
 export function useTeamsQuery(filters: { search: string; page: number }) {

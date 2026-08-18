@@ -17,8 +17,10 @@ import { TaskDetailsPage } from '@/features/tasks/TaskDetailsPage'
 import { RecurringPage } from '@/features/recurring/RecurringPage'
 import { ReviewQueuePage } from '@/features/tasks/ReviewQueuePage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { SummaryPage } from '@/features/summary/SummaryPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { NotificationsPage } from '@/features/notifications/NotificationsPage'
+import { AuditPage } from '@/features/audit/AuditPage'
 
 const router = createBrowserRouter([
   {
@@ -64,9 +66,14 @@ const router = createBrowserRouter([
             children: [{ path: '/tasks/recurring', element: <RecurringPage /> }],
           },
           { path: '/tasks/:taskId', element: <TaskDetailsPage /> },
+          { path: '/summary', element: <SummaryPage /> },
           {
             element: <RequirePermission permission="dashboard:manager" />,
             children: [{ path: '/reports', element: <ReportsPage /> }],
+          },
+          {
+            element: <RequirePermission permission="audit:read" />,
+            children: [{ path: '/audit', element: <AuditPage /> }],
           },
           { path: '/notifications', element: <NotificationsPage /> },
           { path: '/profile', element: <ProfilePage /> },

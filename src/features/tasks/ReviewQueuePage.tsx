@@ -29,7 +29,7 @@ export function ReviewQueuePage() {
   const { hasPermission } = useAuth()
 
   const [filters, setFilters] = useState({ projectId: '', assigneeId: '', overdue: '', page: 0 })
-  const tasksQuery = useTasksQuery({ search: '', status: 'IN_REVIEW', priority: '', ...filters })
+  const tasksQuery = useTasksQuery({ search: '', status: 'IN_REVIEW', priority: '', tagId: '', ...filters })
   const projectsQuery = useProjectsQuery({ search: '', status: '', page: 0 })
   const canFilterAssignee = hasPermission('user:read')
   const usersQuery = useUsersQuery({ search: '', role: '', active: 'true', page: 0 }, canFilterAssignee)

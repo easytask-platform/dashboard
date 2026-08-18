@@ -53,6 +53,50 @@
   --shadow-card: 0 1px 3px rgb(30 40 90 / 0.06), 0 1px 2px rgb(30 40 90 / 0.04);
 }
 
+/*
+ * Dark theme (P4-2/D31, FR-12): same token names, dark-tuned values, flipped
+ * by a `.dark` class on <html> (set pre-paint by the inline script in
+ * index.html and toggled from the AppShell header). Components never branch
+ * on the theme — they only ever read tokens.
+ */
+.dark {
+  color-scheme: dark;
+
+  --color-ink: #e7eaf3;
+  --color-ink-soft: #9aa3b8;
+  --color-paper: #141721;
+  --color-surface: #1d212f;
+  --color-line: #2d3348;
+
+  --color-primary: #7381dd;
+  --color-primary-deep: #aab4f2;
+  --color-primary-soft: #272d4b;
+
+  --color-sidebar: #171a29;
+  --color-sidebar-hover: #232948;
+
+  --color-danger: #f36c6c;
+  --color-danger-soft: #3a1f22;
+  --color-success: #3fc06d;
+  --color-success-soft: #1a3324;
+  --color-warning: #f08b4b;
+  --color-warning-soft: #38260f;
+
+  --color-status-todo: #8b98ab;
+  --color-status-progress: #2cc0aa;
+  --color-status-review: #a687f8;
+  --color-status-approved: #3fc06d;
+  --color-status-reopened: #f08b4b;
+  --color-status-cancelled: #6d7a94;
+
+  --color-priority-low: #8b98ab;
+  --color-priority-medium: #6c9bf2;
+  --color-priority-high: #f08b4b;
+  --color-priority-critical: #f36c6c;
+
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.4), 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
 @layer base {
   html {
     @apply antialiased;

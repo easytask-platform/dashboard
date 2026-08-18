@@ -1,26 +1,44 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ArrowRight, Pencil } from 'lucide-react'
-import { useAuth } from '@/features/auth/auth-context'
+import { ArrowLeft, ArrowRight, FileDown, Pencil } from 'lucide-react'
+import { Can, useAuth } from '@/features/auth/auth-context'
+import { splitApiError } from '@/lib/api/form-errors'
+import { useToast } from '@/components/ui/Toast'
 import {
   useProjectQuery,
   useProjectMembersQuery,
   useAddProjectMember,
   useRemoveProjectMember,
+  downloadProjectReport,
 } from './api'
 import { ProjectFormDialog, PROJECT_STATUS_COLORS } from './ProjectsPage'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { FlowRail } from '@/components/ui/FlowRail'
 import { MembersManager } from '@/components/MembersManager'
+import { TagsManager } from '@/features/tags/TagsManager'
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const { t } = useTranslation()
   const { hasPermission } = useAuth()
+  const toast = useToast()
   const canManage = hasPermission('project:manage')
   const [editing, setEditing] = useState(false)
+  const [exporting, setExporting] = useState(false)
+
+  const exportReport = async (format: 'pdf' | 'html') => {
+    if (!project) return
+    setExporting(true)
+    try {
+      await downloadProjectReport(project.id, project.name, format)
+    } catch (error) {
+      toast.error(splitApiError(error).message ?? t('common.error'))
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const projectQuery = useProjectQuery(projectId!)
   const membersQuery = useProjectMembersQuery(projectId!)
@@ -48,11 +66,22 @@ export function ProjectDetailsPage() {
           <h1 className="text-xl font-semibold tracking-tight">{project.name}</h1>
           <Badge label={t(`projects.statuses.${project.status}`)} color={PROJECT_STATUS_COLORS[project.status]} />
         </div>
-        {canManage && (
-          <Button variant="secondary" onClick={() => setEditing(true)}>
-            <Pencil className="size-4" /> {t('common.edit')}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Can permission="dashboard:manager">
+            <Button variant="secondary" disabled={exporting} onClick={() => void exportReport('pdf')}>
+              <FileDown className="size-4" />
+              {exporting ? t('common.loading') : t('projects.exportReport')}
+            </Button>
+            <Button variant="ghost" size="sm" disabled={exporting} onClick={() => void exportReport('html')}>
+              {t('projects.exportHtml')}
+            </Button>
+          </Can>
+          {canManage && (
+            <Button variant="secondary" onClick={() => setEditing(true)}>
+              <Pencil className="size-4" /> {t('common.edit')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {project.description && <p className="max-w-2xl text-sm text-ink-soft">{project.description}</p>}
@@ -93,6 +122,10 @@ export function ProjectDetailsPage() {
             onRemove={(userId) => removeMember.mutateAsync({ projectId: project.id, userId })}
           />
         </section>
+
+        <div className="lg:col-start-3">
+          <TagsManager projectId={project.id} />
+        </div>
       </div>
 
       <ProjectFormDialog open={editing} editing={project} onClose={() => setEditing(false)} />

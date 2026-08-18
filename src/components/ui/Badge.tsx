@@ -2,11 +2,23 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
-export function Badge({ label, color, className }: { label: string; color: string; className?: string }) {
+export function Badge({
+  label,
+  color,
+  className,
+  title,
+}: {
+  label: string
+  color: string
+  className?: string
+  title?: string
+}) {
   return (
     <span
       className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium', className)}
-      style={{ color, backgroundColor: `color-mix(in srgb, ${color} 12%, white)` }}
+      // Mixing against the surface token keeps chips legible in dark mode (P4-2).
+      style={{ color, backgroundColor: `color-mix(in srgb, ${color} 12%, var(--color-surface))` }}
+      title={title}
     >
       <span className="size-1.5 rounded-full" style={{ backgroundColor: color }} aria-hidden />
       {label}
@@ -53,4 +65,17 @@ export function ActiveBadge({ active }: { active: boolean }) {
 
 export function RoleBadge({ role }: { role: string }) {
   return <Badge label={role} color="var(--color-primary)" />
+}
+
+/** Blocked/waiting flag (P4-6/AF-06) — visually distinct without being a status. */
+export function BlockedBadge({ reason }: { reason?: string | null }) {
+  const { t } = useTranslation()
+  return (
+    <Badge
+      label={t('tasks.blocked')}
+      color="var(--color-warning)"
+      className="border border-dashed border-warning/60"
+      title={reason ?? undefined}
+    />
+  )
 }

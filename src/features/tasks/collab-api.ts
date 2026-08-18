@@ -4,6 +4,7 @@ import { api } from '@/lib/api/client'
 interface Person {
   id: string
   fullName: string
+  avatarUrl: string | null
 }
 
 export interface TaskComment {
@@ -11,8 +12,17 @@ export interface TaskComment {
   taskId: string
   author: Person
   text: string
+  /** One-level threading (P4-4/D34): non-null on replies; replies can't be replied to. */
+  parentCommentId: string | null
   createdAt: string
   updatedAt: string
+}
+
+export interface NewComment {
+  text: string
+  parentCommentId?: string
+  /** Explicit mention targets (P4-4/D35) — the server never parses the text. */
+  mentionedUserIds?: string[]
 }
 
 export interface TaskAttachment {
@@ -66,7 +76,7 @@ export function useCommentsQuery(taskId: string) {
 export function useAddComment(taskId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (text: string) => api.post(`/tasks/${taskId}/comments`, { text }),
+    mutationFn: async (body: NewComment) => api.post(`/tasks/${taskId}/comments`, body),
     onSuccess: () => invalidateTask(queryClient, taskId, 'task-comments'),
   })
 }

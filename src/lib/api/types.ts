@@ -41,6 +41,8 @@ export interface AuthUser {
   organizationName: string
   /** True when an admin chose the current password — force a change before anything else. */
   mustChangePassword: boolean
+  /** Relative API path of the profile picture; null = initials fallback (P4-1). */
+  avatarUrl: string | null
 }
 
 export interface LoginResponse {

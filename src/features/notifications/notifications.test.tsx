@@ -101,6 +101,12 @@ describe('kanban view', () => {
       totalLoggedHours: 0,
       overdue: false,
       assignees: [],
+      tags: [{ id: 'tag1', name: 'Frontend', color: '#5560c1' }],
+      blocked: true,
+      blockedReason: 'Waiting on design sign-off',
+      checklistDone: 1,
+      checklistTotal: 3,
+      pinned: false,
     },
     {
       id: 't2',
@@ -115,6 +121,12 @@ describe('kanban view', () => {
       totalLoggedHours: 1,
       overdue: false,
       assignees: [],
+      tags: [],
+      blocked: false,
+      blockedReason: null,
+      checklistDone: 0,
+      checklistTotal: 0,
+      pinned: true,
     },
   ]
 

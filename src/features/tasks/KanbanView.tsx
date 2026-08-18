@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { ListChecks, Star } from 'lucide-react'
 import { DndContext, useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core'
 import { useAuth } from '@/features/auth/auth-context'
 import { useChangeTaskStatus, TASK_STATUSES, type TaskListItem, type TaskStatus } from './api'
 import { targetsFor } from './transitions'
 import { splitApiError } from '@/lib/api/form-errors'
-import { PriorityBadge, STATUS_COLORS } from '@/components/ui/Badge'
+import { PriorityBadge, STATUS_COLORS, BlockedBadge } from '@/components/ui/Badge'
+import { TagChip } from '@/components/ui/TagChip'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 
@@ -28,17 +30,47 @@ function Card({ task, draggable }: { task: TaskListItem; draggable: boolean }) {
         'rounded-lg border border-line bg-surface p-3 shadow-card',
         draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
         isDragging && 'z-10 opacity-90',
+        // AF-06: blocked tasks read differently at a glance without leaving their column
+        task.blocked && 'border-s-4 border-s-warning',
       )}
     >
-      <p className="text-sm font-medium">{task.title}</p>
+      <p className="flex items-center gap-1.5 text-sm font-medium">
+        {task.pinned && <Star className="size-3.5 shrink-0 fill-warning text-warning" aria-hidden />}
+        {task.title}
+      </p>
       <p className="mb-2 text-xs text-ink-soft">{task.projectName}</p>
+      {task.blocked && (
+        <div className="mb-2">
+          <BlockedBadge reason={task.blockedReason} />
+        </div>
+      )}
+      {task.tags.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1">
+          {task.tags.map((tag) => (
+            <TagChip key={tag.id} name={tag.name} color={tag.color} />
+          ))}
+        </div>
+      )}
       <div className="flex items-center justify-between gap-2">
         <PriorityBadge priority={task.priority} />
-        {task.dueDate && (
-          <span className={cn('text-xs', task.overdue ? 'font-semibold text-danger' : 'text-ink-soft')}>
-            {task.dueDate}
-          </span>
-        )}
+        <span className="flex items-center gap-2">
+          {task.checklistTotal > 0 && (
+            <span
+              className={cn(
+                'flex items-center gap-1 text-xs',
+                task.checklistDone === task.checklistTotal ? 'text-success' : 'text-ink-soft',
+              )}
+            >
+              <ListChecks className="size-3.5" aria-hidden />
+              {task.checklistDone}/{task.checklistTotal}
+            </span>
+          )}
+          {task.dueDate && (
+            <span className={cn('text-xs', task.overdue ? 'font-semibold text-danger' : 'text-ink-soft')}>
+              {task.dueDate}
+            </span>
+          )}
+        </span>
       </div>
     </div>
   )

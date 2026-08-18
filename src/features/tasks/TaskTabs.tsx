@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
-import { Check, Download, Paperclip, Pencil, Send, Trash2, X } from 'lucide-react'
+import { Check, CornerDownRight, Download, Paperclip, Pencil, Reply, Send, Trash2, X } from 'lucide-react'
 import { useAuth } from '@/features/auth/auth-context'
+import { useProjectMembersQuery } from '@/features/projects/api'
 import {
   useCommentsQuery,
   useAddComment,
@@ -16,8 +17,10 @@ import {
   useAddTimeEntry,
   useDeleteTimeEntry,
   useActivityQuery,
+  type TaskComment,
 } from './collab-api'
 import { splitApiError } from '@/lib/api/form-errors'
+import { Avatar } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
 import { useToast } from '@/components/ui/Toast'
@@ -26,7 +29,7 @@ import { cn } from '@/lib/utils'
 type Tab = 'comments' | 'attachments' | 'time' | 'activity'
 const TABS: Tab[] = ['comments', 'attachments', 'time', 'activity']
 
-export function TaskTabs({ taskId }: { taskId: string }) {
+export function TaskTabs({ taskId, projectId }: { taskId: string; projectId?: string }) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('comments')
 
@@ -51,7 +54,7 @@ export function TaskTabs({ taskId }: { taskId: string }) {
         ))}
       </div>
       <div className="p-5">
-        {tab === 'comments' && <CommentsTab taskId={taskId} />}
+        {tab === 'comments' && <CommentsTab taskId={taskId} projectId={projectId} />}
         {tab === 'attachments' && <AttachmentsTab taskId={taskId} />}
         {tab === 'time' && <TimeTab taskId={taskId} />}
         {tab === 'activity' && <ActivityTab taskId={taskId} />}
@@ -60,7 +63,7 @@ export function TaskTabs({ taskId }: { taskId: string }) {
   )
 }
 
-function CommentsTab({ taskId }: { taskId: string }) {
+function CommentsTab({ taskId, projectId }: { taskId: string; projectId?: string }) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const toast = useToast()
@@ -71,6 +74,38 @@ function CommentsTab({ taskId }: { taskId: string }) {
   const [text, setText] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
+  // One-level threading (D34) + explicit mentions (D35)
+  const [replyTo, setReplyTo] = useState<TaskComment | null>(null)
+  const [mentioned, setMentioned] = useState<Map<string, string>>(new Map())
+  const membersQuery = useProjectMembersQuery(projectId ?? '')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // The trailing "@query" fragment of the draft drives the autocomplete.
+  const mentionMatch = /(^|\s)@([\p{L}\p{N}]*(?: [\p{L}\p{N}]*)?)$/u.exec(text)
+  const mentionQuery = mentionMatch?.[2] ?? null
+  const mentionCandidates = useMemo(() => {
+    if (mentionQuery === null) return []
+    const query = mentionQuery.toLowerCase()
+    return (membersQuery.data ?? [])
+      .filter((member) => member.id !== user?.id && member.fullName.toLowerCase().includes(query))
+      .slice(0, 5)
+  }, [mentionQuery, membersQuery.data, user?.id])
+
+  const pickMention = (memberId: string, fullName: string) => {
+    setText((current) => current.replace(/@([\p{L}\p{N}]*(?: [\p{L}\p{N}]*)?)$/u, `@${fullName} `))
+    setMentioned((current) => new Map(current).set(memberId, fullName))
+    inputRef.current?.focus()
+  }
+
+  const replies = useMemo(() => {
+    const byParent = new Map<string, TaskComment[]>()
+    for (const comment of commentsQuery.data ?? []) {
+      if (!comment.parentCommentId) continue
+      byParent.set(comment.parentCommentId, [...(byParent.get(comment.parentCommentId) ?? []), comment])
+    }
+    return byParent
+  }, [commentsQuery.data])
+  const topLevel = commentsQuery.data?.filter((comment) => !comment.parentCommentId)
 
   const saveEdit = async () => {
     if (!editingId || !editText.trim()) return
@@ -85,9 +120,19 @@ function CommentsTab({ taskId }: { taskId: string }) {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!text.trim()) return
+    // Only mentions whose "@Full Name" survived editing are sent.
+    const mentionedUserIds = [...mentioned.entries()]
+      .filter(([, fullName]) => text.includes(`@${fullName}`))
+      .map(([id]) => id)
     try {
-      await addComment.mutateAsync(text.trim())
+      await addComment.mutateAsync({
+        text: text.trim(),
+        parentCommentId: replyTo?.id,
+        mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined,
+      })
       setText('')
+      setReplyTo(null)
+      setMentioned(new Map())
     } catch (error) {
       toast.error(splitApiError(error).message ?? t('common.error'))
     }
@@ -95,17 +140,56 @@ function CommentsTab({ taskId }: { taskId: string }) {
 
   return (
     <div className="space-y-4">
-      <form onSubmit={submit} className="flex gap-2">
-        <input
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder={t('collab.commentPlaceholder')}
-          aria-label={t('collab.commentPlaceholder')}
-          className="h-9 flex-1 rounded-lg border border-line bg-paper px-3 text-sm outline-none focus:border-primary"
-        />
-        <Button type="submit" disabled={addComment.isPending || !text.trim()}>
-          <Send className="size-4" /> {t('collab.post')}
-        </Button>
+      <form onSubmit={submit} className="space-y-2">
+        {replyTo && (
+          <p className="flex w-fit items-center gap-2 rounded-lg bg-primary-soft px-3 py-1.5 text-xs text-primary-deep">
+            <CornerDownRight className="size-3.5" aria-hidden />
+            {t('collab.replyingTo', { name: replyTo.author.fullName })}
+            <button
+              type="button"
+              aria-label={t('collab.cancelReply')}
+              onClick={() => setReplyTo(null)}
+              className="hover:text-ink"
+            >
+              <X className="size-3.5" />
+            </button>
+          </p>
+        )}
+        <div className="relative flex gap-2">
+          <input
+            ref={inputRef}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder={t('collab.commentPlaceholder')}
+            aria-label={t('collab.commentPlaceholder')}
+            className="h-9 flex-1 rounded-lg border border-line bg-paper px-3 text-sm outline-none focus:border-primary"
+          />
+          <Button type="submit" disabled={addComment.isPending || !text.trim()}>
+            <Send className="size-4" /> {t('collab.post')}
+          </Button>
+          {mentionCandidates.length > 0 && (
+            <ul
+              role="listbox"
+              aria-label={t('collab.mentionSuggestions')}
+              className="absolute start-0 top-10 z-10 w-64 overflow-hidden rounded-lg border border-line bg-surface shadow-card"
+            >
+              {mentionCandidates.map((member) => (
+                <li key={member.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={false}
+                    onClick={() => pickMention(member.id, member.fullName)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-start text-sm hover:bg-paper"
+                  >
+                    <Avatar person={member} size="xs" />
+                    {member.fullName}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </form>
 
       {commentsQuery.isLoading ? (
@@ -114,69 +198,15 @@ function CommentsTab({ taskId }: { taskId: string }) {
         <p className="py-4 text-center text-sm text-ink-soft">{t('collab.noComments')}</p>
       ) : (
         <ul className="space-y-3">
-          {commentsQuery.data?.map((comment) => (
+          {topLevel?.map((comment) => (
             <li key={comment.id} className="rounded-lg border border-line bg-paper p-3">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="text-sm font-medium">{comment.author.fullName}</span>
-                <span className="flex items-center gap-2 text-xs text-ink-soft">
-                  {format(new Date(comment.createdAt), 'yyyy-MM-dd HH:mm')}
-                  {comment.author.id === user?.id && editingId !== comment.id && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-6"
-                        aria-label={t('common.edit')}
-                        onClick={() => {
-                          setEditingId(comment.id)
-                          setEditText(comment.text)
-                        }}
-                      >
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-6"
-                        aria-label={t('common.delete')}
-                        onClick={() => deleteComment.mutate(comment.id)}
-                      >
-                        <Trash2 className="size-3.5 text-danger" />
-                      </Button>
-                    </>
-                  )}
-                </span>
-              </div>
-              {editingId === comment.id ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    value={editText}
-                    onChange={(event) => setEditText(event.target.value)}
-                    aria-label={t('collab.editComment')}
-                    className="h-8 flex-1 rounded-lg border border-line bg-surface px-2 text-sm outline-none focus:border-primary"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    aria-label={t('common.save')}
-                    disabled={updateComment.isPending}
-                    onClick={() => void saveEdit()}
-                  >
-                    <Check className="size-4 text-success" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    aria-label={t('common.cancel')}
-                    onClick={() => setEditingId(null)}
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
+              {renderComment(comment, true)}
+              {(replies.get(comment.id)?.length ?? 0) > 0 && (
+                <ul className="ms-6 mt-2 space-y-2 border-s-2 border-line ps-3">
+                  {replies.get(comment.id)?.map((reply) => (
+                    <li key={reply.id}>{renderComment(reply, false)}</li>
+                  ))}
+                </ul>
               )}
             </li>
           ))}
@@ -184,6 +214,92 @@ function CommentsTab({ taskId }: { taskId: string }) {
       )}
     </div>
   )
+
+  function renderComment(comment: TaskComment, isTopLevel: boolean) {
+    return (
+      <>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2 text-sm font-medium">
+            <Avatar person={comment.author} size={isTopLevel ? 'sm' : 'xs'} />
+            {comment.author.fullName}
+          </span>
+          <span className="flex items-center gap-2 text-xs text-ink-soft">
+            {format(new Date(comment.createdAt), 'yyyy-MM-dd HH:mm')}
+            {isTopLevel && editingId !== comment.id && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6"
+                aria-label={t('collab.reply', { name: comment.author.fullName })}
+                onClick={() => {
+                  setReplyTo(comment)
+                  inputRef.current?.focus()
+                }}
+              >
+                <Reply className="size-3.5" />
+              </Button>
+            )}
+            {comment.author.id === user?.id && editingId !== comment.id && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6"
+                  aria-label={t('common.edit')}
+                  onClick={() => {
+                    setEditingId(comment.id)
+                    setEditText(comment.text)
+                  }}
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6"
+                  aria-label={t('common.delete')}
+                  onClick={() => deleteComment.mutate(comment.id)}
+                >
+                  <Trash2 className="size-3.5 text-danger" />
+                </Button>
+              </>
+            )}
+          </span>
+        </div>
+        {editingId === comment.id ? (
+          <div className="flex items-center gap-2">
+            <input
+              value={editText}
+              onChange={(event) => setEditText(event.target.value)}
+              aria-label={t('collab.editComment')}
+              className="h-8 flex-1 rounded-lg border border-line bg-surface px-2 text-sm outline-none focus:border-primary"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              aria-label={t('common.save')}
+              disabled={updateComment.isPending}
+              onClick={() => void saveEdit()}
+            >
+              <Check className="size-4 text-success" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              aria-label={t('common.cancel')}
+              onClick={() => setEditingId(null)}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
+        )}
+      </>
+    )
+  }
 }
 
 function AttachmentsTab({ taskId }: { taskId: string }) {
@@ -383,7 +499,7 @@ function ActivityTab({ taskId }: { taskId: string }) {
     <ol className="space-y-3">
       {activityQuery.data?.map((event) => (
         <li key={event.id} className="flex gap-3 text-sm">
-          <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" aria-hidden />
+          <Avatar person={event.actor} size="xs" className="mt-0.5" />
           <div>
             <p>
               <span className="font-medium">{event.actor.fullName}</span>{' '}

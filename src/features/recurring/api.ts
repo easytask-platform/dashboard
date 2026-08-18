@@ -67,3 +67,43 @@ export function useGeneratedTasksQuery(ruleId: string | null) {
     enabled: ruleId !== null,
   })
 }
+
+/**
+ * Recurrence exceptions (P4-10/D41, AF-11): computed upcoming run dates, each
+ * flagged when an exception skips it. Skipping never cancels the rule.
+ */
+export interface Occurrence {
+  date: string
+  skipped: boolean
+}
+
+export function useOccurrencesQuery(ruleId: string | null) {
+  return useQuery({
+    queryKey: ['recurring-occurrences', ruleId],
+    queryFn: async () =>
+      (await api.get<{ items: Occurrence[] }>(`/recurring-task-rules/${ruleId}/occurrences`, {
+        params: { count: 6 },
+      })).data.items,
+    enabled: ruleId !== null,
+  })
+}
+
+function useOccurrenceMutation(ruleId: string, mutationFn: (date: string) => Promise<unknown>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recurring-occurrences', ruleId] }),
+  })
+}
+
+export function useSkipOccurrence(ruleId: string) {
+  return useOccurrenceMutation(ruleId, async (date) =>
+    api.post(`/recurring-task-rules/${ruleId}/exceptions`, { date }),
+  )
+}
+
+export function useRestoreOccurrence(ruleId: string) {
+  return useOccurrenceMutation(ruleId, async (date) =>
+    api.delete(`/recurring-task-rules/${ruleId}/exceptions/${date}`),
+  )
+}

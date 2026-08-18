@@ -72,7 +72,7 @@ export interface OrgActivityItem {
   taskId: string
   taskTitle: string
   projectName: string
-  actor: { id: string; fullName: string }
+  actor: { id: string; fullName: string; avatarUrl: string | null }
   eventType: string
   oldValue: string | null
   newValue: string | null

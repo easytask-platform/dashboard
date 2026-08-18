@@ -9,6 +9,7 @@ export interface User {
   role: string
   roleId: string
   active: boolean
+  avatarUrl: string | null
   createdAt: string
 }
 
