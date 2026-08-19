@@ -402,6 +402,8 @@ export const ar: typeof en = {
       search: 'بحث',
       language: 'English',
       toggleTheme: 'تبديل المظهر الفاتح/الداكن',
+      showPassword: 'إظهار كلمة المرور',
+      hidePassword: 'إخفاء كلمة المرور',
       notFound: 'الصفحة غير موجودة',
       forbidden: 'ليس لديك صلاحية لعرض هذه الصفحة.',
       empty: 'لا يوجد شيء هنا بعد',

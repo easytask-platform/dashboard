@@ -1,4 +1,7 @@
 import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const inputClass =
@@ -36,6 +39,34 @@ export function TextField({ label, error, containerClassName, className, ...prop
   return (
     <FieldWrapper label={label} error={error} className={containerClassName}>
       <input className={cn(inputClass, error && 'border-danger', className)} {...props} />
+    </FieldWrapper>
+  )
+}
+
+/**
+ * Password input with a show/hide toggle. Same API as TextField; forces
+ * type=password and layers an eye button on the trailing (RTL-aware) edge.
+ */
+export function PasswordField({ label, error, containerClassName, className, ...props }: TextFieldProps) {
+  const { t } = useTranslation()
+  const [visible, setVisible] = useState(false)
+  return (
+    <FieldWrapper label={label} error={error} className={containerClassName}>
+      <div className="relative">
+        <input
+          type={visible ? 'text' : 'password'}
+          className={cn(inputClass, 'pe-10', error && 'border-danger', className)}
+          {...props}
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? t('common.hidePassword') : t('common.showPassword')}
+          className="absolute inset-y-0 end-0 grid w-10 place-items-center rounded-e-lg text-ink-soft outline-none hover:text-ink focus-visible:text-ink"
+        >
+          {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
+        </button>
+      </div>
     </FieldWrapper>
   )
 }

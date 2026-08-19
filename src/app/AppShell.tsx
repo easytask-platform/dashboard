@@ -96,7 +96,7 @@ export function AppShell() {
     <div className="flex min-h-screen">
       <aside className="flex w-60 shrink-0 flex-col bg-sidebar text-white">
         <div className="flex items-center gap-2.5 px-5 py-5">
-          <span className="grid size-9 place-items-center rounded-xl bg-primary font-bold">E</span>
+          <img src="/logo.png" alt="" className="size-9 rounded-xl bg-white p-1" />
           <span className="text-lg font-semibold tracking-tight">{t('app.name')}</span>
         </div>
         <nav className="mt-2 flex flex-1 flex-col gap-1 px-3" aria-label="Main">

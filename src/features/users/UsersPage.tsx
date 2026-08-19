@@ -20,7 +20,7 @@ import { DataTable, Pagination, type Column } from '@/components/ui/DataTable'
 import { ActiveBadge, RoleBadge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, ConfirmDialog } from '@/components/ui/Dialog'
-import { TextField, SelectField, FormError } from '@/components/ui/Field'
+import { TextField, PasswordField, SelectField, FormError } from '@/components/ui/Field'
 import { useToast } from '@/components/ui/Toast'
 
 interface UserForm {
@@ -280,9 +280,8 @@ export function UsersPage() {
                 </div>
               </fieldset>
               {!inviteMode && (
-                <TextField
+                <PasswordField
                   label={t('users.initialPassword')}
-                  type="password"
                   required
                   minLength={8}
                   error={apiFields.initialPassword}
@@ -330,9 +329,8 @@ export function UsersPage() {
         title={t('users.resetPasswordFor', { name: resetting?.fullName })}
       >
         <form onSubmit={submitReset} className="space-y-4">
-          <TextField
+          <PasswordField
             label={t('auth.newPassword')}
-            type="password"
             required
             minLength={8}
             error={apiFields.newPassword}

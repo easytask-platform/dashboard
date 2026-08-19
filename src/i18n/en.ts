@@ -400,6 +400,8 @@ export const en = {
       search: 'Search',
       language: 'العربية',
       toggleTheme: 'Toggle light/dark theme',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
       notFound: 'Page not found',
       forbidden: 'You do not have permission to view this page.',
       empty: 'Nothing here yet',

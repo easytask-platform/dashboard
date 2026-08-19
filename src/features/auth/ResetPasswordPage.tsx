@@ -6,7 +6,7 @@ import { KeyRound } from 'lucide-react'
 import { splitApiError } from '@/lib/api/form-errors'
 import { resetFlow } from './reset-flow'
 import { tokenStore } from '@/lib/api/token-store'
-import { TextField, FormError } from '@/components/ui/Field'
+import { PasswordField, FormError } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 
@@ -58,18 +58,16 @@ export function ResetPasswordPage() {
         </div>
 
         <form onSubmit={submit} className="space-y-4 rounded-card border border-line bg-surface p-6 shadow-card">
-          <TextField
+          <PasswordField
             label={t('auth.newPassword')}
-            type="password"
             autoComplete="new-password"
             required
             minLength={8}
             error={apiFields.newPassword}
             {...register('newPassword')}
           />
-          <TextField
+          <PasswordField
             label={t('auth.confirmPassword')}
-            type="password"
             autoComplete="new-password"
             required
             error={errors.confirmPassword?.message}

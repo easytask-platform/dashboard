@@ -6,7 +6,7 @@ import { api } from '@/lib/api/client'
 import { tokenStore } from '@/lib/api/token-store'
 import { splitApiError } from '@/lib/api/form-errors'
 import { useAuth } from './auth-context'
-import { TextField, FormError } from '@/components/ui/Field'
+import { TextField, PasswordField, FormError } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 import type { LoginResponse } from '@/lib/api/types'
 
@@ -55,9 +55,7 @@ export function RegisterOrganizationPage() {
     <div className="grid min-h-screen place-items-center bg-paper p-6">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <span className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-primary text-2xl font-bold text-white">
-            E
-          </span>
+          <img src="/logo.png" alt="" className="mx-auto mb-4 size-14" />
           <h1 className="text-2xl font-semibold tracking-tight">{t('auth.registerTitle')}</h1>
           <p className="mt-1 text-sm text-ink-soft">{t('auth.registerSubtitle')}</p>
         </div>
@@ -83,18 +81,16 @@ export function RegisterOrganizationPage() {
             error={apiFields.email}
             {...register('email')}
           />
-          <TextField
+          <PasswordField
             label={t('auth.password')}
-            type="password"
             autoComplete="new-password"
             required
             minLength={8}
             error={apiFields.password}
             {...register('password')}
           />
-          <TextField
+          <PasswordField
             label={t('auth.confirmPassword')}
-            type="password"
             autoComplete="new-password"
             required
             error={errors.confirmPassword?.message}
