@@ -92,8 +92,7 @@ export const en = {
       changePasswordHint: 'We’ll email a code to your address — no forms, no old password.',
       forcedChangeTitle: 'Choose your own password',
       forcedChangeSubtitle: 'The password for {{email}} was set by an administrator — replace it to continue.',
-      forcedChangeExplain: 'One click sends a code to your email; enter it and pick your own password.',
-      emailMeCode: 'Email me a code',
+      forcedChangeExplain: 'Choose a new password below to finish setting up your account.',
     },
     profile: {
       role: 'Role',

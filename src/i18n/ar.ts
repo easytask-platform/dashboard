@@ -94,8 +94,7 @@ export const ar: typeof en = {
       changePasswordHint: 'سنرسل رمزاً إلى بريدك — بلا نماذج وبلا كلمة المرور القديمة.',
       forcedChangeTitle: 'اختر كلمة مرور خاصة بك',
       forcedChangeSubtitle: 'كلمة مرور {{email}} وضعها المسؤول — استبدلها للمتابعة.',
-      forcedChangeExplain: 'ضغطة واحدة ترسل رمزاً إلى بريدك؛ أدخله واختر كلمة مرورك.',
-      emailMeCode: 'أرسل لي رمزاً',
+      forcedChangeExplain: 'اختر كلمة مرور جديدة أدناه لإكمال إعداد حسابك.',
     },
     profile: {
       role: 'الدور',

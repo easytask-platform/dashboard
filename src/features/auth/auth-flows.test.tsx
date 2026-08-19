@@ -54,7 +54,7 @@ describe('login', () => {
       '/login',
     )
     await user.type(screen.getByLabelText(/email/i), 'ava@acme.test')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
+    await user.type(screen.getByLabelText('Password'), 'password123')
     await user.click(screen.getByRole('button', { name: /log in/i }))
     expect(await screen.findByText('home page')).toBeInTheDocument()
     expect(tokenStore.accessToken).toBe('at')
@@ -65,7 +65,7 @@ describe('login', () => {
     const user = userEvent.setup()
     renderRoutes([{ path: '/login', element: <LoginPage /> }], '/login')
     await user.type(screen.getByLabelText(/email/i), 'ava@acme.test')
-    await user.type(screen.getByLabelText(/password/i), 'nope-nope')
+    await user.type(screen.getByLabelText('Password'), 'nope-nope')
     await user.click(screen.getByRole('button', { name: /log in/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Invalid credentials')
     expect(tokenStore.accessToken).toBeNull()

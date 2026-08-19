@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -47,13 +47,19 @@ export function TextField({ label, error, containerClassName, className, ...prop
  * Password input with a show/hide toggle. Same API as TextField; forces
  * type=password and layers an eye button on the trailing (RTL-aware) edge.
  */
-export function PasswordField({ label, error, containerClassName, className, ...props }: TextFieldProps) {
+export function PasswordField({ label, error, containerClassName, className, id, ...props }: TextFieldProps) {
   const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
+  const generatedId = useId()
+  const inputId = id ?? generatedId
   return (
-    <FieldWrapper label={label} error={error} className={containerClassName}>
+    <div className={cn('block', containerClassName)}>
+      <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium">
+        {label}
+      </label>
       <div className="relative">
         <input
+          id={inputId}
           type={visible ? 'text' : 'password'}
           className={cn(inputClass, 'pe-10', error && 'border-danger', className)}
           {...props}
@@ -67,7 +73,12 @@ export function PasswordField({ label, error, containerClassName, className, ...
           {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
         </button>
       </div>
-    </FieldWrapper>
+      {error && (
+        <span role="alert" className="mt-1 block text-xs text-danger">
+          {error}
+        </span>
+      )}
+    </div>
   )
 }
 

@@ -4,15 +4,19 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { RequireAuth } from '@/app/guards'
-import { ResetCodePage } from './ResetCodePage'
-import { renderRoutes, meHandler, signIn, testUser, API_BASE_URL } from '@/test/utils'
+import { renderRoutes, signIn, testUser, API_BASE_URL } from '@/test/utils'
 
-let requestedEmail: string | null = null
+let lastNewPassword: string | null = null
+let changed = false
 
 const server = setupServer(
-  meHandler({ ...testUser, mustChangePassword: true }),
-  http.post(`${API_BASE_URL}/auth/forgot-password`, async ({ request }) => {
-    requestedEmail = ((await request.json()) as { email: string }).email
+  // /me reports the flag until the user sets their own password.
+  http.get(`${API_BASE_URL}/me`, () =>
+    HttpResponse.json({ ...testUser, mustChangePassword: !changed }),
+  ),
+  http.post(`${API_BASE_URL}/auth/first-login-password`, async ({ request }) => {
+    lastNewPassword = ((await request.json()) as { newPassword: string }).newPassword
+    changed = true
     return new HttpResponse(null, { status: 204 })
   }),
 )
@@ -21,11 +25,12 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterAll(() => server.close())
 afterEach(() => {
   server.resetHandlers()
-  requestedEmail = null
+  lastNewPassword = null
+  changed = false
 })
 
-describe('forced password change (P3-2, code-based)', () => {
-  it('blocks the app and one click emails the code to the OWN account', async () => {
+describe('forced password change (P3-2)', () => {
+  it('blocks the app until the user sets their own password directly', async () => {
     signIn()
     const user = userEvent.setup()
     renderRoutes(
@@ -34,20 +39,37 @@ describe('forced password change (P3-2, code-based)', () => {
           element: <RequireAuth />,
           children: [{ path: '/', element: <div>home page</div> }],
         },
-        { path: '/reset-code', element: <ResetCodePage /> },
       ],
       '/',
     )
 
-    // Gate visible, app hidden, no password inputs anywhere.
+    // Gate visible, app hidden.
     expect(await screen.findByText(/choose your own password/i)).toBeInTheDocument()
     expect(screen.queryByText('home page')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /email me a code/i }))
+    await user.type(screen.getByLabelText('New password'), 'myBrandNew9')
+    await user.type(screen.getByLabelText('Confirm password'), 'myBrandNew9')
+    await user.click(screen.getByRole('button', { name: /set new password/i }))
 
-    // The code went to the logged-in account without asking for the email.
-    expect(await screen.findByText(/we sent a code to ava@acme.test/i)).toBeInTheDocument()
-    expect(requestedEmail).toBe('ava@acme.test')
+    // No code was involved; the new password was posted and the app unlocks.
+    expect(await screen.findByText('home page')).toBeInTheDocument()
+    expect(lastNewPassword).toBe('myBrandNew9')
+  })
+
+  it('shows the mismatch error and does not submit when passwords differ', async () => {
+    signIn()
+    const user = userEvent.setup()
+    renderRoutes(
+      [{ element: <RequireAuth />, children: [{ path: '/', element: <div>home page</div> }] }],
+      '/',
+    )
+
+    await screen.findByText(/choose your own password/i)
+    await user.type(screen.getByLabelText('New password'), 'myBrandNew9')
+    await user.type(screen.getByLabelText('Confirm password'), 'different9')
+    await user.click(screen.getByRole('button', { name: /set new password/i }))
+
+    expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument()
+    expect(lastNewPassword).toBeNull()
   })
 })
