@@ -28,6 +28,7 @@ function Card({ task, draggable }: { task: TaskListItem; draggable: boolean }) {
       onClick={() => !isDragging && navigate(`/tasks/${task.id}`)}
       className={cn(
         'rounded-lg border border-line bg-surface p-3 shadow-card',
+        'transition-[box-shadow,translate] duration-200 ease-lift hover:-translate-y-0.5 hover:shadow-[var(--shadow-lifted)]',
         draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
         isDragging && 'z-10 opacity-90',
         // AF-06: blocked tasks read differently at a glance without leaving their column

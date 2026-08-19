@@ -70,6 +70,22 @@ const NAV_ITEMS = [
   { to: '/notifications', key: 'nav.notifications', icon: Bell },
 ] as const
 
+/**
+ * Sidebar link styling (design port, Step 2): hover darkens the row and nudges
+ * it inward; active shows a small white marker bar that grows in on the leading
+ * edge. Logical props (ps/inset-inline via `start-0`) keep it correct in RTL.
+ */
+function sidebarLinkClass(isActive: boolean, extra?: string) {
+  return cn(
+    'group relative flex items-center gap-3 rounded-lg ps-3 pe-3 py-2.5 text-sm text-white/75',
+    'transition-all duration-150 ease-lift hover:bg-sidebar-hover hover:text-white hover:ps-4',
+    "before:absolute before:inset-y-2.5 before:start-0 before:w-[3px] before:rounded-e-sm before:bg-white before:content-['']",
+    'before:origin-center before:scale-y-0 before:transition-transform before:duration-200 before:ease-lift',
+    isActive && 'bg-primary text-white before:scale-y-100 hover:bg-primary',
+    extra,
+  )
+}
+
 export function AppShell() {
   const { t } = useTranslation()
   const { user, hasPermission } = useAuth()
@@ -103,13 +119,7 @@ export function AppShell() {
                 key={to}
                 to={to}
                 end={'end' in rest && rest.end}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/75 transition-colors',
-                    'hover:bg-sidebar-hover hover:text-white',
-                    isActive && 'bg-primary text-white hover:bg-primary',
-                  )
-                }
+                className={({ isActive }) => sidebarLinkClass(isActive)}
               >
                 <Icon className="size-4.5" aria-hidden />
                 {t(key)}
@@ -120,13 +130,7 @@ export function AppShell() {
         </nav>
         <NavLink
           to="/profile"
-          className={({ isActive }) =>
-            cn(
-              'm-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/75',
-              'hover:bg-sidebar-hover hover:text-white',
-              isActive && 'bg-primary text-white hover:bg-primary',
-            )
-          }
+          className={({ isActive }) => sidebarLinkClass(isActive, 'm-3')}
         >
           {user ? <Avatar person={user} size="xs" /> : <CircleUserRound className="size-4.5" aria-hidden />}
           <span className="truncate">{user?.fullName}</span>
