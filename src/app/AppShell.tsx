@@ -22,7 +22,7 @@ import {
 import { useAuth } from '@/features/auth/auth-context'
 import { Avatar } from '@/components/ui/Avatar'
 import { useUnreadCountQuery } from '@/features/notifications/api'
-import { enableWebPush, pushAvailable } from '@/lib/push/push'
+import { enablePush, listenForegroundPush, pushGranted } from '@/lib/push/push'
 import { useToast } from '@/components/ui/Toast'
 import { applyLanguage, storedLanguage } from '@/i18n'
 import { effectiveTheme, toggleTheme } from '@/lib/theme'
@@ -75,20 +75,17 @@ export function AppShell() {
   const { user, hasPermission } = useAuth()
   const toast = useToast()
   const queryClient = useQueryClient()
-  const registerPush = async () => {
-    await enableWebPush((push) => {
+  // Web push (P3-6): first-time opt-in happens at login/sign-up (a real user
+  // gesture, so the prompt actually appears). Here we only re-register the
+  // token for users who already granted it, and start the foreground listener
+  // (toast + badge refresh); background messages go through the service worker.
+  useEffect(() => {
+    if (pushGranted()) void enablePush()
+    void listenForegroundPush((push) => {
       toast.success(push.body ? `${push.title} — ${push.body}` : push.title)
       void queryClient.invalidateQueries({ queryKey: ['notifications'] })
       void queryClient.invalidateQueries({ queryKey: ['notifications-unread'] })
     })
-  }
-
-  // Web push (P3-6): always attempt on mount — re-registers silently when
-  // already granted, and prompts right away where the browser allows
-  // auto-prompts. The header button remains as fallback for browsers that
-  // suppress non-gesture prompts.
-  useEffect(() => {
-    if (pushAvailable()) void registerPush()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

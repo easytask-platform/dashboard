@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from './auth-context'
 import { ApiError } from '@/lib/api/types'
 import { PasswordField } from '@/components/ui/Field'
+import { enablePush } from '@/lib/push/push'
 
 interface LoginForm {
   email: string
@@ -27,6 +28,9 @@ export function LoginPage() {
     setApiMessage(null)
     try {
       await login(email, password)
+      // Ask for notification permission now, while we still have the click's
+      // user gesture — browsers suppress the prompt on a bare page load.
+      void enablePush()
       const from = (location.state as { from?: string } | null)?.from
       navigate(from ?? '/', { replace: true })
     } catch (error) {

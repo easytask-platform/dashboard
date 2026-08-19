@@ -8,6 +8,7 @@ import { splitApiError } from '@/lib/api/form-errors'
 import { useAuth } from './auth-context'
 import { TextField, PasswordField, FormError } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
+import { enablePush } from '@/lib/push/push'
 import type { LoginResponse } from '@/lib/api/types'
 
 interface RegisterForm {
@@ -42,6 +43,8 @@ export function RegisterOrganizationPage() {
         password,
       })
       tokenStore.set(data.accessToken, data.refreshToken)
+      // Ask for notification permission while the submit gesture is still active.
+      void enablePush()
       await refreshUser()
       navigate('/', { replace: true })
     } catch (error) {

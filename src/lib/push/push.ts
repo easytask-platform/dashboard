@@ -32,24 +32,29 @@ export function pushGranted(): boolean {
   return pushAvailable() && Notification.permission === 'granted'
 }
 
+async function messagingInstance() {
+  const { initializeApp, getApps } = await import('firebase/app')
+  const { getMessaging } = await import('firebase/messaging')
+  return getMessaging(getApps()[0] ?? initializeApp(FIREBASE_CONFIG))
+}
+
 /**
+ * Requests notification permission and registers this browser's FCM token.
  * Browsers suppress permission prompts that don't come from a user gesture,
- * so this is called in two ways: automatically on shell mount (registers
- * silently when permission was ALREADY granted) and from the explicit
- * "enable notifications" button (which may show the prompt).
+ * so this is called right after a successful login/sign-up (a real gesture)
+ * for first-time opt-in, and again silently on shell mount for users who
+ * already granted it (requestPermission resolves instantly then, no prompt).
+ * No-ops when unsupported or the user declines.
  */
-export async function enableWebPush(onForeground: (push: ForegroundPush) => void): Promise<void> {
+export async function enablePush(): Promise<void> {
   if (!pushConfigured) return
   if (!('serviceWorker' in navigator) || !('Notification' in window)) return
   try {
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return
 
-    const { initializeApp, getApps } = await import('firebase/app')
-    const { getMessaging, getToken, onMessage } = await import('firebase/messaging')
-    const app = getApps()[0] ?? initializeApp(FIREBASE_CONFIG)
-    const messaging = getMessaging(app)
-
+    const { getToken } = await import('firebase/messaging')
+    const messaging = await messagingInstance()
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
     const token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
@@ -59,7 +64,24 @@ export async function enableWebPush(onForeground: (push: ForegroundPush) => void
 
     await api.post('/me/devices', { token, platform: 'WEB' })
     currentToken = token
+  } catch (error) {
+    // Push is a nice-to-have: never let it break the app.
+    console.warn('Web push disabled:', error)
+  }
+}
 
+/**
+ * Foreground message handler (toast + badge refresh). Runs where React context
+ * is available (the app shell); self-gates so it only listens once permission
+ * is granted. Background messages are handled by firebase-messaging-sw.js.
+ */
+export async function listenForegroundPush(
+  onForeground: (push: ForegroundPush) => void,
+): Promise<void> {
+  if (!pushGranted()) return
+  try {
+    const { onMessage } = await import('firebase/messaging')
+    const messaging = await messagingInstance()
     onMessage(messaging, (payload) => {
       const data = payload.data ?? {}
       onForeground({
@@ -69,8 +91,7 @@ export async function enableWebPush(onForeground: (push: ForegroundPush) => void
       })
     })
   } catch (error) {
-    // Push is a nice-to-have: never let it break the app.
-    console.warn('Web push disabled:', error)
+    console.warn('Foreground push listener failed:', error)
   }
 }
 
