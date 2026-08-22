@@ -2,7 +2,16 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { ListChecks, Star } from 'lucide-react'
-import { DndContext, useDraggable, useDroppable, type DragEndEvent } from '@dnd-kit/core'
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 import { useAuth } from '@/features/auth/auth-context'
 import { useChangeTaskStatus, TASK_STATUSES, type TaskListItem, type TaskStatus } from './api'
 import { targetsFor } from './transitions'
@@ -119,6 +128,13 @@ export function KanbanView({ tasks }: { tasks: TaskListItem[] }) {
   const changeStatus = useChangeTaskStatus()
   const [draggingFrom, setDraggingFrom] = useState<TaskStatus | null>(null)
 
+  // Require an 8px drag before a press becomes a drag, so a plain click still
+  // fires the card's onClick (opens the task) instead of being eaten as a drag.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor),
+  )
+
   const permissions = user?.permissions ?? []
   const allowedTargets = draggingFrom ? targetsFor(permissions, draggingFrom) : []
 
@@ -139,6 +155,7 @@ export function KanbanView({ tasks }: { tasks: TaskListItem[] }) {
 
   return (
     <DndContext
+      sensors={sensors}
       onDragStart={(event) => {
         const task = tasks.find((candidate) => candidate.id === event.active.id)
         setDraggingFrom(task?.status ?? null)
