@@ -10,7 +10,7 @@ import { TaskFormDialog } from './TaskFormDialog'
 import { ChecklistSection } from './ChecklistSection'
 import { splitApiError } from '@/lib/api/form-errors'
 import { Avatar } from '@/components/ui/Avatar'
-import { StatusBadge, PriorityBadge, BlockedBadge, STATUS_COLORS } from '@/components/ui/Badge'
+import { StatusBadge, PriorityBadge, BlockedBadge } from '@/components/ui/Badge'
 import { TagChip } from '@/components/ui/TagChip'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
@@ -18,8 +18,11 @@ import { TextAreaField, FormError } from '@/components/ui/Field'
 import { useToast } from '@/components/ui/Toast'
 import { TaskTabs } from './TaskTabs'
 
-/** Sensible display order when several transitions are available. */
-const TRANSITION_ORDER: TaskStatus[] = ['IN_PROGRESS', 'IN_REVIEW', 'APPROVED', 'REOPENED', 'CANCELLED']
+/** Sensible display order for the status dropdown. */
+const TRANSITION_ORDER: TaskStatus[] = ['TO_DO', 'IN_PROGRESS', 'IN_REVIEW', 'APPROVED', 'REOPENED', 'CANCELLED']
+
+const selectClass =
+  'h-9 rounded-lg border border-line bg-surface px-3 text-sm outline-none focus:border-primary disabled:opacity-50'
 
 export function TaskDetailsPage() {
   const { taskId } = useParams<{ taskId: string }>()
@@ -117,17 +120,29 @@ export function TaskDetailsPage() {
           >
             <Star className={task.pinned ? 'size-4.5 fill-warning text-warning' : 'size-4.5'} />
           </Button>
-          {targets.map((status) => (
-            <Button
-              key={status}
-              variant={status === 'CANCELLED' ? 'danger' : 'primary'}
-              style={status === 'CANCELLED' ? undefined : { backgroundColor: STATUS_COLORS[status] }}
+          {targets.length > 0 && (
+            <select
+              aria-label={t('tasks.changeStatus')}
+              className={selectClass}
+              value=""
               disabled={changeStatus.isPending}
-              onClick={() => (needsNote(status) ? setNoteFor(status) : applyTransition(status))}
+              onChange={(event) => {
+                const status = event.target.value as TaskStatus
+                if (!status) return
+                if (needsNote(status)) setNoteFor(status)
+                else applyTransition(status)
+              }}
             >
-              {t(`tasks.actions.${status}`)}
-            </Button>
-          ))}
+              <option value="" disabled>
+                {t('tasks.changeStatus')}
+              </option>
+              {targets.map((status) => (
+                <option key={status} value={status}>
+                  {t(`status.${status}`)}
+                </option>
+              ))}
+            </select>
+          )}
           {canActOnTask && (
             <Button
               variant="secondary"

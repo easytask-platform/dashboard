@@ -249,7 +249,9 @@ export const ar: typeof en = {
         kanban: 'لوحة',
         calendar: 'تقويم',
       },
+      changeStatus: 'تغيير الحالة',
       actions: {
+        TO_DO: 'إرجاع إلى قيد الانتظار',
         IN_PROGRESS: 'بدء',
         IN_REVIEW: 'إرسال للمراجعة',
         APPROVED: 'اعتماد',
@@ -257,6 +259,7 @@ export const ar: typeof en = {
         CANCELLED: 'إلغاء المهمة',
       },
       transitioned: {
+        TO_DO: 'أُعيدت المهمة إلى قيد الانتظار',
         IN_PROGRESS: 'بدأت المهمة',
         IN_REVIEW: 'أُرسلت للمراجعة',
         APPROVED: 'اعتُمدت المهمة',

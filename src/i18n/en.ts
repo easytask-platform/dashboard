@@ -247,7 +247,9 @@ export const en = {
         kanban: 'Board',
         calendar: 'Calendar',
       },
+      changeStatus: 'Change status',
       actions: {
+        TO_DO: 'Move to To do',
         IN_PROGRESS: 'Start',
         IN_REVIEW: 'Submit for review',
         APPROVED: 'Approve',
@@ -255,6 +257,7 @@ export const en = {
         CANCELLED: 'Cancel task',
       },
       transitioned: {
+        TO_DO: 'Task moved to To do',
         IN_PROGRESS: 'Task started',
         IN_REVIEW: 'Submitted for review',
         APPROVED: 'Task approved',

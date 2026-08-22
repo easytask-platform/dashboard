@@ -109,13 +109,15 @@ describe('task details', () => {
     renderRoutes([{ path: '/tasks/:taskId', element: <TaskDetailsPage /> }], '/tasks/task1')
     expect(await screen.findByText('Build login screen')).toBeInTheDocument()
 
-    // IN_REVIEW + review permission → Approve / Reopen (+ Cancel task)
-    expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /reopen/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /cancel task/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /submit for review/i })).not.toBeInTheDocument()
+    // IN_REVIEW + review permission → status dropdown offers Approved / Reopened / Cancelled
+    const statusSelect = screen.getByRole('combobox', { name: /change status/i })
+    expect(within(statusSelect).getByRole('option', { name: 'Approved' })).toBeInTheDocument()
+    expect(within(statusSelect).getByRole('option', { name: 'Reopened' })).toBeInTheDocument()
+    expect(within(statusSelect).getByRole('option', { name: 'Cancelled' })).toBeInTheDocument()
+    // the current status is never an option (can't transition to the same status)
+    expect(within(statusSelect).queryByRole('option', { name: 'In review' })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /reopen/i }))
+    await user.selectOptions(statusSelect, 'REOPENED')
     const dialog = screen.getByRole('dialog')
     await user.type(within(dialog).getByLabelText(/note/i), 'Needs polish')
     await user.click(within(dialog).getByRole('button', { name: /confirm/i }))
@@ -129,7 +131,7 @@ describe('task details', () => {
     server.use(meHandler({ ...testUser, permissions: ['task:execute'] }))
     renderRoutes([{ path: '/tasks/:taskId', element: <TaskDetailsPage /> }], '/tasks/task1')
     expect(await screen.findByText('Build login screen')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /cancel task/i })).not.toBeInTheDocument()
+    // no valid transition for execute-only from IN_REVIEW → no status dropdown at all
+    expect(screen.queryByRole('combobox', { name: /change status/i })).not.toBeInTheDocument()
   })
 })
